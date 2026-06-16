@@ -26,7 +26,6 @@ import jakarta.ws.rs.Produces;
 import jakarta.ws.rs.core.Context;
 import jakarta.ws.rs.core.HttpHeaders;
 import jakarta.ws.rs.core.Response;
-import jakarta.ws.rs.core.UriInfo;
 import se.uu.ub.cora.logger.Logger;
 import se.uu.ub.cora.logger.LoggerProvider;
 
@@ -44,10 +43,12 @@ public class UrnNbnEndpoint {
 	@GET
 	@Path("")
 	@Produces({ APPLICATION_XML })
-	public Response readRecordJson(@Context UriInfo uriInfo) {
-		// String serviceName = SettingsProvider.getSetting("serviceName");
+	public Response readUrnNbn() {
+		String emptyResponse = """
+				<records xmlns="urn:nbn:se:uu:ub:epc-schema:rs-location-mapping">
+					<protocol-version>3.0</protocol-version>
+					</records>""";
 		return Response.status(Response.Status.OK).header(HttpHeaders.CONTENT_TYPE, APPLICATION_XML)
-				.entity("<trams>" + uriInfo.getPath() + "</trams>").build();
+				.entity(emptyResponse).build();
 	}
-
 }

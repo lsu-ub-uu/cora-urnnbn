@@ -36,7 +36,9 @@
 	
 	<properties>
 		<coralog4j.version>2.16.0</coralog4j.version>
-		
+		<logger.version>2.10.0</logger.version>
+		<logger-spies.version>1.5.0</logger-spies.version>
+				
 		<jaxb-api.version>2.3.1</jaxb-api.version>
 		<servlet-api.version>6.1.0</servlet-api.version>
 		<jersey.version>4.0.2</jersey.version>
@@ -89,6 +91,18 @@
 			<artifactId>log4j</artifactId>
 			<version>${coralog4j.version}</version>
 			<scope>compile</scope>
+		</dependency>
+		<dependency>
+			<groupId>se.uu.ub.cora</groupId>
+			<artifactId>logger-spies</artifactId>
+			<version>${logger-spies.version}</version>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>se.uu.ub.cora</groupId>
+			<artifactId>logger</artifactId>
+			<version>${logger.version}</version>
+			<scope>provided</scope>
 		</dependency>
 		
 		<dependency>
@@ -178,5 +192,6 @@
 			<version>${initialize-spies.version}</version>
 			<scope>test</scope>
 		</dependency>
+				
 	</dependencies>
 </project>
