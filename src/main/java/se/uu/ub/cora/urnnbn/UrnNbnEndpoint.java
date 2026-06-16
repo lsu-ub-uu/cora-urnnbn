@@ -31,7 +31,6 @@ import se.uu.ub.cora.logger.LoggerProvider;
 
 @Path("")
 public class UrnNbnEndpoint {
-	private static final String DSADS = "dsads";
 	private static final String APPLICATION_XML = "application/xml";
 	HttpServletRequest request;
 	private Logger log = LoggerProvider.getLoggerForClass(UrnNbnEndpoint.class);
