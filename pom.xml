@@ -74,8 +74,8 @@
 		<search.version>6.0.0</search.version>
 		<storagespies.version>1.15.0</storagespies.version>
 		
-		<initialize.version>1.7.0</initialize.version>
-		<initialize-spies.version>1.6.0</initialize-spies.version>
+		<initialize.version>1.8.0</initialize.version>
+		<initialize-spies.version>1.7.0</initialize-spies.version>
 		
 	</properties>
 
