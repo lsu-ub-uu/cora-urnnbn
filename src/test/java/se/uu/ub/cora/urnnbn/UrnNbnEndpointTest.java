@@ -105,7 +105,7 @@ public class UrnNbnEndpointTest {
 		assertEquals(response.getHeaderString(HttpHeaders.CONTENT_TYPE), APPLICATION_XML);
 
 		String emptyResponse = """
-				n<records xmlns="urn:nbn:se:uu:ub:epc-schema:rs-location-mapping">
+				<records xmlns="urn:nbn:se:uu:ub:epc-schema:rs-location-mapping">
 					<protocol-version>3.0</protocol-version>
 					<record>
 						<header>

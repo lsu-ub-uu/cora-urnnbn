@@ -44,7 +44,7 @@ public class UrnNbnEndpoint {
 	@Produces({ APPLICATION_XML })
 	public Response readUrnNbn() {
 		String emptyResponse = """
-				n<records xmlns="urn:nbn:se:uu:ub:epc-schema:rs-location-mapping">
+				<records xmlns="urn:nbn:se:uu:ub:epc-schema:rs-location-mapping">
 					<protocol-version>3.0</protocol-version>
 					<record>
 						<header>
