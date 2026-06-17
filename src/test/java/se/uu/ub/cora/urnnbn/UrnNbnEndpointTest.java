@@ -98,16 +98,26 @@ public class UrnNbnEndpointTest {
 	//
 
 	@Test
-	public void testInit() throws Exception {
+	public void testInit() {
 		Response response = endpoint.readUrnNbn();
 
 		assertEquals(response.getStatusInfo(), Response.Status.OK);
 		assertEquals(response.getHeaderString(HttpHeaders.CONTENT_TYPE), APPLICATION_XML);
 
 		String emptyResponse = """
-				<records xmlns="urn:nbn:se:uu:ub:epc-schema:rs-location-mapping">
+				n<records xmlns="urn:nbn:se:uu:ub:epc-schema:rs-location-mapping">
 					<protocol-version>3.0</protocol-version>
-					</records>""";
+					<record>
+						<header>
+							<identifier>urn:nbn:se:diva-2116</identifier>
+							<destinations>
+								<destination status="activated">
+									<url>https://nordiskamuseet.diva-portal.org/divaclient/diva-output/2116</url>
+								</destination>
+							</destinations>
+						</header>
+					</record>
+				</records>""";
 		assertEquals(response.getEntity(), emptyResponse);
 	}
 

@@ -44,9 +44,19 @@ public class UrnNbnEndpoint {
 	@Produces({ APPLICATION_XML })
 	public Response readUrnNbn() {
 		String emptyResponse = """
-				<records xmlns="urn:nbn:se:uu:ub:epc-schema:rs-location-mapping">
+				n<records xmlns="urn:nbn:se:uu:ub:epc-schema:rs-location-mapping">
 					<protocol-version>3.0</protocol-version>
-					</records>""";
+					<record>
+						<header>
+							<identifier>urn:nbn:se:diva-2116</identifier>
+							<destinations>
+								<destination status="activated">
+									<url>https://nordiskamuseet.diva-portal.org/divaclient/diva-output/2116</url>
+								</destination>
+							</destinations>
+						</header>
+					</record>
+				</records>""";
 		return Response.status(Response.Status.OK).header(HttpHeaders.CONTENT_TYPE, APPLICATION_XML)
 				.entity(emptyResponse).build();
 	}
