@@ -20,6 +20,9 @@ package se.uu.ub.cora.urnnbn;
 
 import static org.testng.Assert.assertEquals;
 
+import java.util.LinkedHashSet;
+import java.util.Set;
+
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
@@ -104,7 +107,7 @@ public class UrnNbnEndpointTest {
 		assertEquals(response.getStatusInfo(), Response.Status.OK);
 		assertEquals(response.getHeaderString(HttpHeaders.CONTENT_TYPE), APPLICATION_XML);
 
-		String emptyResponse = """
+		String expectedResponse = """
 				<records xmlns="urn:nbn:se:uu:ub:epc-schema:rs-location-mapping">
 					<protocol-version>3.0</protocol-version>
 					<record>
@@ -118,12 +121,67 @@ public class UrnNbnEndpointTest {
 						</header>
 					</record>
 				</records>""";
-		assertEquals(response.getEntity(), emptyResponse);
+		assertEquals(response.getEntity(), expectedResponse);
 	}
 
 	@Test
-	public void testWith() throws Exception {
+	public void testWith() {
+		UrnNbnSpy urnNbnSpy = new UrnNbnSpy();
+		Set<IdAndUrnNbn> urnNbnList = getListOfUrnNbns(3);
+		urnNbnSpy.MRV.setDefaultReturnValuesSupplier(
+				"getUrnNbnFromLatestRecordsCreatedUsingRecordTypeStartAndRows", () -> urnNbnList);
 
+		Response response = endpoint.readUrnNbn();
+
+		urnNbnSpy.MCR.assertParameters(
+				"getUrnNbnFromLatestRecordsCreatedUsingRecordTypeStartAndRows", 0, "someRecordType",
+				0, 5000);
+
+		// String expectedResponse = """
+		// <records xmlns="urn:nbn:se:uu:ub:epc-schema:rs-location-mapping">
+		// <protocol-version>3.0</protocol-version>
+		// <record>
+		// <header>
+		// <identifier>urnnbn-0</identifier>
+		// <destinations>
+		// <destination status="activated">
+		// <url>https://nordiskamuseet.diva-portal.org/divaclient/diva-output/id-0</url>
+		// </destination>
+		// </destinations>
+		// </header>
+		// </record>
+		// <record>
+		// <header>
+		// <identifier>urnnbn-1</identifier>
+		// <destinations>
+		// <destination status="activated">
+		// <url>https://nordiskamuseet.diva-portal.org/divaclient/diva-output/id-1</url>
+		// </destination>
+		// </destinations>
+		// </header>
+		// </record>
+		// <record>
+		// <header>
+		// <identifier>urnnbn-2</identifier>
+		// <destinations>
+		// <destination status="activated">
+		// <url>https://nordiskamuseet.diva-portal.org/divaclient/diva-output/id-2</url>
+		// </destination>
+		// </destinations>
+		// </header>
+		// </record>
+		// </records>""";
+		// assertEquals(response.getEntity(), expectedResponse);
+
+	}
+
+	private Set<IdAndUrnNbn> getListOfUrnNbns(int numberOfElements) {
+		Set<IdAndUrnNbn> urnNbnList = new LinkedHashSet<>();
+		for (int i = 0; i < numberOfElements; i++) {
+			IdAndUrnNbn idAndUrnNbnI = new IdAndUrnNbn("id-" + i, "urnnbn-" + i);
+			urnNbnList.add(idAndUrnNbnI);
+		}
+		return urnNbnList;
 	}
 
 }

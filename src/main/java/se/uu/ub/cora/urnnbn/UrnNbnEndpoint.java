@@ -1,5 +1,5 @@
 /*
- * Copyright 2015, 2016, 2018, 2021, 2024, 2025 Uppsala University Library
+ * Copyright 2026 Uppsala University Library
  *
  * This file is part of Cora.
  *
@@ -20,12 +20,9 @@
 package se.uu.ub.cora.urnnbn;
 
 import jakarta.servlet.http.HttpServletRequest;
-import jakarta.ws.rs.DefaultValue;
 import jakarta.ws.rs.GET;
 import jakarta.ws.rs.Path;
-import jakarta.ws.rs.PathParam;
 import jakarta.ws.rs.Produces;
-import jakarta.ws.rs.QueryParam;
 import jakarta.ws.rs.core.Context;
 import jakarta.ws.rs.core.HttpHeaders;
 import jakarta.ws.rs.core.Response;
@@ -66,48 +63,48 @@ public class UrnNbnEndpoint {
 
 	// Check
 	// https://git.epc.ub.uu.se/DiVA/urn-service/-/blob/master/src/main/java/diva/service/urn/NbnEndpoint.java
-
-	@GET
-	@Produces({ TEXT_XML, TEXT_PLAIN })
-	@Path("current/{domain}")
-	public Response getCurrentNbn(@PathParam("domain") String domain,
-			@QueryParam("start") @DefaultValue("0") String start,
-			@QueryParam("rows") @DefaultValue("5000") String rows) {
-		LOGGER.info("Read current NBN of domain " + domain);
-		SolrQuery query = createSolrQuery(domain, start, rows);
-		setDateFilter(query);
-
-		return createResponse(query);
-	}
-
-	@GET
-	@Produces({ TEXT_XML, TEXT_PLAIN })
-	@Path("all/{domain}")
-	public Response getNbn(@PathParam("domain") String domain,
-			@QueryParam("start") @DefaultValue("0") String start,
-			@QueryParam("rows") @DefaultValue("50000") String rows) {
-		LOGGER.info("Read NBN of domain " + domain);
-		SolrQuery query = createSolrQuery(domain, start, rows);
-
-		return createResponse(query);
-	}
-
-	private SolrQuery createSolrQuery(String domain, String start, String rows) {
-		SolrQuery query = new SolrQuery();
-
-		setStart(start, query);
-		setNumberOfRows(rows, query);
-		setDomainFilter(query, domain);
-
-		query.setSortField("timestamp", SolrQuery.ORDER.desc);
-		query.setFields("PID,nbn,domain");
-		return query;
-	}
-
-	private void setDateFilter(final SolrQuery query) {
-		final String timeRange = "[NOW/MINUTE-1DAY TO NOW/MINUTE]";
-		query.addFilterQuery("dateUpdated:" + timeRange + " OR datePublished:" + timeRange
-				+ " OR timestamp:" + timeRange);
-	}
+	//
+	// @GET
+	// @Produces({ TEXT_XML, TEXT_PLAIN })
+	// @Path("current/{domain}")
+	// public Response getCurrentNbn(@PathParam("domain") String domain,
+	// @QueryParam("start") @DefaultValue("0") String start,
+	// @QueryParam("rows") @DefaultValue("5000") String rows) {
+	// LOGGER.info("Read current NBN of domain " + domain);
+	// SolrQuery query = createSolrQuery(domain, start, rows);
+	// setDateFilter(query);
+	//
+	// return createResponse(query);
+	// }
+	//
+	// @GET
+	// @Produces({ TEXT_XML, TEXT_PLAIN })
+	// @Path("all/{domain}")
+	// public Response getNbn(@PathParam("domain") String domain,
+	// @QueryParam("start") @DefaultValue("0") String start,
+	// @QueryParam("rows") @DefaultValue("50000") String rows) {
+	// LOGGER.info("Read NBN of domain " + domain);
+	// SolrQuery query = createSolrQuery(domain, start, rows);
+	//
+	// return createResponse(query);
+	// }
+	//
+	// private SolrQuery createSolrQuery(String domain, String start, String rows) {
+	// SolrQuery query = new SolrQuery();
+	//
+	// setStart(start, query);
+	// setNumberOfRows(rows, query);
+	// setDomainFilter(query, domain);
+	//
+	// query.setSortField("timestamp", SolrQuery.ORDER.desc);
+	// query.setFields("PID,nbn,domain");
+	// return query;
+	// }
+	//
+	// private void setDateFilter(final SolrQuery query) {
+	// final String timeRange = "[NOW/MINUTE-1DAY TO NOW/MINUTE]";
+	// query.addFilterQuery("dateUpdated:" + timeRange + " OR datePublished:" + timeRange
+	// + " OR timestamp:" + timeRange);
+	// }
 
 }
