@@ -38,9 +38,9 @@ public class UrnNbnSpy implements UrnNbn {
 
 	@Override
 	public Set<IdAndUrnNbn> getUrnNbnFromLatestRecordsCreatedUsingRecordTypeStartAndRows(
-			String recordType, int start, int rows) {
-		return (Set<IdAndUrnNbn>) MCR.addCallAndReturnFromMRV("recordType", recordType, "start",
-				start, "rows", rows);
+			String serie, int start, int rows) {
+		return (Set<IdAndUrnNbn>) MCR.addCallAndReturnFromMRV("serie", serie, "start", start,
+				"rows", rows);
 	}
 
 }

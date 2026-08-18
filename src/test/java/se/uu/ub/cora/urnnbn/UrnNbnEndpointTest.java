@@ -18,15 +18,12 @@
  */
 package se.uu.ub.cora.urnnbn;
 
-import static org.testng.Assert.assertEquals;
-
 import java.util.LinkedHashSet;
 import java.util.Set;
 
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
-import jakarta.ws.rs.core.HttpHeaders;
 import jakarta.ws.rs.core.Response;
 import se.uu.ub.cora.logger.LoggerProvider;
 import se.uu.ub.cora.logger.spies.LoggerFactorySpy;
@@ -100,32 +97,54 @@ public class UrnNbnEndpointTest {
 	// }
 	//
 
+	// @Test
+	// public void testInit() {
+	// Response response = endpoint.readUrnNbn();
+	//
+	// assertEquals(response.getStatusInfo(), Response.Status.OK);
+	// assertEquals(response.getHeaderString(HttpHeaders.CONTENT_TYPE), APPLICATION_XML);
+	//
+	// String expectedResponse = """
+	// <records xmlns="urn:nbn:se:uu:ub:epc-schema:rs-location-mapping">
+	// <protocol-version>3.0</protocol-version>
+	// <record>
+	// <header>
+	// <identifier>urn:nbn:se:diva-2116</identifier>
+	// <destinations>
+	// <destination status="activated">
+	// <url>https://nordiskamuseet.diva-portal.org/divaclient/diva-output/2116</url>
+	// </destination>
+	// </destinations>
+	// </header>
+	// </record>
+	// </records>""";
+	// assertEquals(response.getEntity(), expectedResponse);
+	// }
+
 	@Test
-	public void testInit() {
-		Response response = endpoint.readUrnNbn();
+	public void testAnnotationsForCreateRecordJsonJson() throws Exception {
+		AnnotationTestHelper annotationHelper = AnnotationTestHelper
+				.createAnnotationTestHelperForClassMethodNameAndParameters(endpoint.getClass(),
+						"readUrnNbn", new Class<?>[] { String.class, int.class, int.class });
 
-		assertEquals(response.getStatusInfo(), Response.Status.OK);
-		assertEquals(response.getHeaderString(HttpHeaders.CONTENT_TYPE), APPLICATION_XML);
+		annotationHelper.assertHttpMethodAndPathAnnotation("GET", "{serie}");
+		annotationHelper.assertProducesAnnotation(APPLICATION_XML);
 
-		String expectedResponse = """
-				<records xmlns="urn:nbn:se:uu:ub:epc-schema:rs-location-mapping">
-					<protocol-version>3.0</protocol-version>
-					<record>
-						<header>
-							<identifier>urn:nbn:se:diva-2116</identifier>
-							<destinations>
-								<destination status="activated">
-									<url>https://nordiskamuseet.diva-portal.org/divaclient/diva-output/2116</url>
-								</destination>
-							</destinations>
-						</header>
-					</record>
-				</records>""";
-		assertEquals(response.getEntity(), expectedResponse);
+		annotationHelper.assertQueryParamAnnotationByNameAndPosition("start", 1);
+		annotationHelper.assertDefaultVauleParamAnnotationByNameAndPosition("0", 1);
+
+		annotationHelper.assertQueryParamAnnotationByNameAndPosition("rows", 2);
+		annotationHelper.assertDefaultVauleParamAnnotationByNameAndPosition("50000", 2);
 	}
 
 	@Test
-	public void testWith() {
+	public void testSerieNotFound() {
+
+		Response response = endpoint.readUrnNbn("notFoundSerie", 0, 50);
+	}
+
+	@Test
+	public void testWithTwoRecords() {
 		UrnNbnSpy urnNbnSpy = new UrnNbnSpy();
 		Set<IdAndUrnNbn> urnNbnList = getListOfUrnNbns(3);
 		urnNbnSpy.MRV.setDefaultReturnValuesSupplier(

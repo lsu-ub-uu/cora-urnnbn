@@ -23,5 +23,5 @@ import java.util.Set;
 public interface UrnNbn {
 
 	public Set<IdAndUrnNbn> getUrnNbnFromLatestRecordsCreatedUsingRecordTypeStartAndRows(
-			String recordType, int start, int rows);
+			String serie, int start, int rows);
 }

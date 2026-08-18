@@ -20,9 +20,12 @@
 package se.uu.ub.cora.urnnbn;
 
 import jakarta.servlet.http.HttpServletRequest;
+import jakarta.ws.rs.DefaultValue;
 import jakarta.ws.rs.GET;
 import jakarta.ws.rs.Path;
+import jakarta.ws.rs.PathParam;
 import jakarta.ws.rs.Produces;
+import jakarta.ws.rs.QueryParam;
 import jakarta.ws.rs.core.Context;
 import jakarta.ws.rs.core.HttpHeaders;
 import jakarta.ws.rs.core.Response;
@@ -40,9 +43,11 @@ public class UrnNbnEndpoint {
 	}
 
 	@GET
-	@Path("")
+	@Path("{serie}")
 	@Produces({ APPLICATION_XML })
-	public Response readUrnNbn() {
+	public Response readUrnNbn(@PathParam("serie") String serie,
+			@QueryParam("start") @DefaultValue("0") int start,
+			@QueryParam("rows") @DefaultValue("50000") int rows) {
 		String emptyResponse = """
 				<records xmlns="urn:nbn:se:uu:ub:epc-schema:rs-location-mapping">
 					<protocol-version>3.0</protocol-version>

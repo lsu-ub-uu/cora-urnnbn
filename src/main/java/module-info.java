@@ -7,5 +7,6 @@ module se.uu.ub.cora.urnnbn {
 	requires se.uu.ub.cora.logger;
 	requires jakarta.ws.rs;
 	requires se.uu.ub.cora.initialize;
+	requires org.glassfish.jersey.media.multipart;
 
 }
