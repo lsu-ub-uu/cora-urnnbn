@@ -18,6 +18,8 @@
  */
 package se.uu.ub.cora.urnnbn;
 
+import static org.testng.Assert.assertEquals;
+
 import java.util.LinkedHashSet;
 import java.util.Set;
 
@@ -27,7 +29,6 @@ import org.testng.annotations.Test;
 import jakarta.ws.rs.core.Response;
 import se.uu.ub.cora.logger.LoggerProvider;
 import se.uu.ub.cora.logger.spies.LoggerFactorySpy;
-import se.uu.ub.cora.urnnbn.dependency.UrnNbnInstanceFactory;
 import se.uu.ub.cora.urnnbn.dependency.UrnNbnInstanceFactorySpy;
 import se.uu.ub.cora.urnnbn.dependency.UrnNbnInstanceProvider;
 import se.uu.ub.cora.urnnbn.spy.HttpServletRequestSpy;
@@ -44,89 +45,22 @@ public class UrnNbnEndpointTest {
 	private static final String PLACE = "place";
 	private static final String AUTH_TOKEN = "authToken";
 
-	// private JsonToDataConverterFactorySpy jsonToDataConverterFactorySpy = new
-	// JsonToDataConverterFactorySpy();
-	//
-	// private RecordEndpointRead recordEndpoint;
-	// private OldSpiderInstanceFactorySpy spiderInstanceFactorySpy;
-	// private Response response;
 	private HttpServletRequestSpy requestSpy;
 	private LoggerFactorySpy loggerFactorySpy;
-	// private DataFactorySpy dataFactorySpy;
-	//
-	// private DataToJsonConverterFactoryCreatorSpy converterFactoryCreatorSpy;
-	// private ConverterFactorySpy converterFactorySpy;
-	// private StringToExternallyConvertibleConverterSpy stringToExternallyConvertibleConverterSpy;
-	// private TheRestInstanceFactorySpy instanceFactory;
 	private UrnNbnEndpoint endpoint;
+	private UrnNbnInstanceFactorySpy urnNbnFactory;
 
 	@BeforeMethod
 	public void beforeMethod() {
 		loggerFactorySpy = new LoggerFactorySpy();
 		LoggerProvider.setLoggerFactory(loggerFactorySpy);
 
-		UrnNbnInstanceFactory factory = new UrnNbnInstanceFactorySpy();
-		UrnNbnInstanceProvider.onlyForTestSetUrnNbnInstanceFactory(factory);
-
-		// dataFactorySpy = new DataFactorySpy();
-		// DataProvider.onlyForTestSetDataFactory(dataFactorySpy);
-		// setupUrlHandler();
-		//
-		// converterFactoryCreatorSpy = new DataToJsonConverterFactoryCreatorSpy();
-		// DataToJsonConverterProvider
-		// .setDataToJsonConverterFactoryCreator(converterFactoryCreatorSpy);
-		//
-		// stringToExternallyConvertibleConverterSpy = new
-		// StringToExternallyConvertibleConverterSpy();
-		// converterFactorySpy = new ConverterFactorySpy();
-		// converterFactorySpy.MRV.setDefaultReturnValuesSupplier(
-		// "factorStringToExternallyConvertableConverter",
-		// () -> stringToExternallyConvertibleConverterSpy);
-		// ConverterProvider.setConverterFactory("xml", converterFactorySpy);
-		//
-		// jsonToDataConverterFactorySpy = new JsonToDataConverterFactorySpy();
-		// JsonToDataConverterProvider.setJsonToDataConverterFactory(jsonToDataConverterFactorySpy);
-		// spiderInstanceFactorySpy = new OldSpiderInstanceFactorySpy();
-		// SpiderInstanceProvider.setSpiderInstanceFactory(spiderInstanceFactorySpy);
+		urnNbnFactory = new UrnNbnInstanceFactorySpy();
+		UrnNbnInstanceProvider.onlyForTestSetUrnNbnInstanceFactory(urnNbnFactory);
 
 		requestSpy = new HttpServletRequestSpy();
 		endpoint = new UrnNbnEndpoint(requestSpy);
 	}
-
-	// private void setupUrlHandler() {
-	// instanceFactory = new TheRestInstanceFactorySpy();
-	// TheRestInstanceProvider.onlyForTestSetTheRestInstanceFactory(instanceFactory);
-	// }
-
-	// @Test
-	// public void testInit() {
-	// recordEndpoint = new RecordEndpointRead(requestSpy);
-	// }
-	//
-
-	// @Test
-	// public void testInit() {
-	// Response response = endpoint.readUrnNbn();
-	//
-	// assertEquals(response.getStatusInfo(), Response.Status.OK);
-	// assertEquals(response.getHeaderString(HttpHeaders.CONTENT_TYPE), APPLICATION_XML);
-	//
-	// String expectedResponse = """
-	// <records xmlns="urn:nbn:se:uu:ub:epc-schema:rs-location-mapping">
-	// <protocol-version>3.0</protocol-version>
-	// <record>
-	// <header>
-	// <identifier>urn:nbn:se:diva-2116</identifier>
-	// <destinations>
-	// <destination status="activated">
-	// <url>https://nordiskamuseet.diva-portal.org/divaclient/diva-output/2116</url>
-	// </destination>
-	// </destinations>
-	// </header>
-	// </record>
-	// </records>""";
-	// assertEquals(response.getEntity(), expectedResponse);
-	// }
 
 	@Test
 	public void testAnnotationsForCreateRecordJsonJson() throws Exception {
@@ -151,53 +85,42 @@ public class UrnNbnEndpointTest {
 	}
 
 	@Test
-	public void testWithTwoRecords() {
-		UrnNbnSpy urnNbnSpy = new UrnNbnSpy();
-		Set<IdAndUrnNbn> urnNbnList = getListOfUrnNbns(3);
-		urnNbnSpy.MRV.setDefaultReturnValuesSupplier(
-				"getUrnNbnFromLatestRecordsCreatedUsingRecordTypeStartAndRows", () -> urnNbnList);
+	public void testParametersArePassedOnToUrnNbn() {
+		endpoint.readUrnNbn("someSerie", 10, 500);
 
-		Response response = endpoint.readUrnNbn();
-
+		UrnNbnSpy urnNbnSpy = (UrnNbnSpy) urnNbnFactory.MCR.getReturnValue("factorUrnNbn", 0);
 		urnNbnSpy.MCR.assertParameters(
-				"getUrnNbnFromLatestRecordsCreatedUsingRecordTypeStartAndRows", 0, "someRecordType",
-				0, 5000);
+				"getUrnNbnFromLatestRecordsCreatedUsingRecordTypeStartAndRows", 0, "someSerie", 10,
+				500);
+	}
 
-		// String expectedResponse = """
-		// <records xmlns="urn:nbn:se:uu:ub:epc-schema:rs-location-mapping">
-		// <protocol-version>3.0</protocol-version>
-		// <record>
-		// <header>
-		// <identifier>urnnbn-0</identifier>
-		// <destinations>
-		// <destination status="activated">
-		// <url>https://nordiskamuseet.diva-portal.org/divaclient/diva-output/id-0</url>
-		// </destination>
-		// </destinations>
-		// </header>
-		// </record>
-		// <record>
-		// <header>
-		// <identifier>urnnbn-1</identifier>
-		// <destinations>
-		// <destination status="activated">
-		// <url>https://nordiskamuseet.diva-portal.org/divaclient/diva-output/id-1</url>
-		// </destination>
-		// </destinations>
-		// </header>
-		// </record>
-		// <record>
-		// <header>
-		// <identifier>urnnbn-2</identifier>
-		// <destinations>
-		// <destination status="activated">
-		// <url>https://nordiskamuseet.diva-portal.org/divaclient/diva-output/id-2</url>
-		// </destination>
-		// </destinations>
-		// </header>
-		// </record>
-		// </records>""";
-		// assertEquals(response.getEntity(), expectedResponse);
+	String emptyResponse = """
+			<records xmlns="urn:nbn:se:uu:ub:epc-schema:rs-location-mapping">
+				<protocol-version>3.0</protocol-version>
+				<record>
+					<header>
+						<identifier>urnnbn-1</identifier>
+						<destinations>
+							<destination status="activated">
+								<url>https://nordiskamuseet.diva-portal.org/divaclient/diva-output/1</url>
+							</destination>
+						</destinations>
+					</header>
+				</record>
+			</records>""";
+
+	@Test
+	public void testReturnedIdAndUrnNbnAreTurnedIntoXML() {
+		int numberOfElements = 1;
+		UrnNbnSpy urnNbnSpy = new UrnNbnSpy();
+		urnNbnSpy.MRV.setDefaultReturnValuesSupplier(
+				"getUrnNbnFromLatestRecordsCreatedUsingRecordTypeStartAndRows",
+				() -> getListOfUrnNbns(numberOfElements));
+		urnNbnFactory.MRV.setDefaultReturnValuesSupplier("factorUrnNbn", () -> urnNbnSpy);
+
+		Response response = endpoint.readUrnNbn("someSerie", 0, 1);
+		assertEquals(response.getStatus(), Response.Status.OK.getStatusCode());
+		assertEquals(response.getEntity(), emptyResponse);
 
 	}
 

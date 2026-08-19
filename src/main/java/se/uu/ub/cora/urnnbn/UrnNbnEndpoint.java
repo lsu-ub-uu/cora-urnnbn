@@ -19,6 +19,8 @@
 
 package se.uu.ub.cora.urnnbn;
 
+import java.util.Set;
+
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.ws.rs.DefaultValue;
 import jakarta.ws.rs.GET;
@@ -31,6 +33,7 @@ import jakarta.ws.rs.core.HttpHeaders;
 import jakarta.ws.rs.core.Response;
 import se.uu.ub.cora.logger.Logger;
 import se.uu.ub.cora.logger.LoggerProvider;
+import se.uu.ub.cora.urnnbn.dependency.UrnNbnInstanceProvider;
 
 @Path("")
 public class UrnNbnEndpoint {
@@ -48,22 +51,46 @@ public class UrnNbnEndpoint {
 	public Response readUrnNbn(@PathParam("serie") String serie,
 			@QueryParam("start") @DefaultValue("0") int start,
 			@QueryParam("rows") @DefaultValue("50000") int rows) {
+		UrnNbn urnNbn = UrnNbnInstanceProvider.getUrnNbn();
+		Set<IdAndUrnNbn> urnSet = urnNbn
+				.getUrnNbnFromLatestRecordsCreatedUsingRecordTypeStartAndRows(serie, start, rows);
+
+		// String emptyResponse = """
+		// <records xmlns="urn:nbn:se:uu:ub:epc-schema:rs-location-mapping">
+		// <protocol-version>3.0</protocol-version>
+		// <record>
+		// <header>
+		// <identifier>urn:nbn:se:diva-2116</identifier>
+		// <destinations>
+		// <destination status="activated">
+		// <url>https://nordiskamuseet.diva-portal.org/divaclient/diva-output/2116</url>
+		// </destination>
+		// </destinations>
+		// </header>
+		// </record>
+		// </records>""";
 		String emptyResponse = """
 				<records xmlns="urn:nbn:se:uu:ub:epc-schema:rs-location-mapping">
 					<protocol-version>3.0</protocol-version>
-					<record>
-						<header>
-							<identifier>urn:nbn:se:diva-2116</identifier>
-							<destinations>
-								<destination status="activated">
-									<url>https://nordiskamuseet.diva-portal.org/divaclient/diva-output/2116</url>
-								</destination>
-							</destinations>
-						</header>
-					</record>
+
 				</records>""";
 		return Response.status(Response.Status.OK).header(HttpHeaders.CONTENT_TYPE, APPLICATION_XML)
 				.entity(emptyResponse).build();
+	}
+
+	String getRecordsXmlPartForSet(Set<IdAndUrnNbn> urnSet) {
+		return """
+				<record>
+					<header>
+						<identifier>urn:nbn:se:diva-2116</identifier>
+						<destinations>
+							<destination status="activated">
+								<url>https://nordiskamuseet.diva-portal.org/divaclient/diva-output/2116</url>
+							</destination>
+						</destinations>
+					</header>
+				</record>
+				""";
 	}
 
 	// Check

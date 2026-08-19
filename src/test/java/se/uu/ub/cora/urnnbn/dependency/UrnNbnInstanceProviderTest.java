@@ -31,7 +31,7 @@ import org.testng.annotations.Test;
 
 import se.uu.ub.cora.urnnbn.UrnNbn;
 
-public class TheRestInstanceProviderTest {
+public class UrnNbnInstanceProviderTest {
 	private UrnNbnInstanceFactorySpy factory;
 
 	@BeforeMethod
