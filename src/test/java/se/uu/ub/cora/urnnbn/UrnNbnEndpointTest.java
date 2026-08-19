@@ -36,19 +36,12 @@ import se.uu.ub.cora.urnnbn.spy.HttpServletRequestSpy;
 public class UrnNbnEndpointTest {
 
 	private static final String APPLICATION_XML = "application/xml";
-	private static final String APPLICATION_XML_QS01 = "application/xml;qs=0.1";
-	private static final String APPLICATION_VND_CORA_RECORD_XML = "application/vnd.cora.record+xml";
-	private static final String APPLICATION_VND_CORA_RECORD_JSON = "application/vnd.cora.record+json";
-	private static final String APPLICATION_VND_CORA_RECORD_JSON_QS09 = "application/vnd.cora.record+json;qs=0.9";
-	private static final String DUMMY_NON_AUTHORIZED_TOKEN = "dummyNonAuthorizedToken";
-	private static final String PLACE_0001 = "place:0001";
-	private static final String PLACE = "place";
-	private static final String AUTH_TOKEN = "authToken";
 
 	private HttpServletRequestSpy requestSpy;
 	private LoggerFactorySpy loggerFactorySpy;
 	private UrnNbnEndpoint endpoint;
 	private UrnNbnInstanceFactorySpy urnNbnFactory;
+	private UrnNbnSpy urnNbnSpy;
 
 	@BeforeMethod
 	public void beforeMethod() {
@@ -57,6 +50,7 @@ public class UrnNbnEndpointTest {
 
 		urnNbnFactory = new UrnNbnInstanceFactorySpy();
 		UrnNbnInstanceProvider.onlyForTestSetUrnNbnInstanceFactory(urnNbnFactory);
+		urnNbnSpy = new UrnNbnSpy();
 
 		requestSpy = new HttpServletRequestSpy();
 		endpoint = new UrnNbnEndpoint(requestSpy);
@@ -79,22 +73,52 @@ public class UrnNbnEndpointTest {
 	}
 
 	@Test
-	public void testSerieNotFound() {
+	public void testSerieNoRecords() {
+		setUpNoRecordsReturned(0);
 
-		Response response = endpoint.readUrnNbn("notFoundSerie", 0, 50);
+		Response response = endpoint.readUrnNbn("someSerie", 0, 50);
+
+		urnNbnSpy.MCR.assertParameters(
+				"getUrnNbnFromLatestRecordsCreatedUsingRecordTypeStartAndRows", 0, "someSerie", 0,
+				50);
+		assertEquals(response.getStatus(), Response.Status.OK.getStatusCode());
+
+		assertXmlWithoutFormatting(response.getEntity().toString(), responseEmpty);
+		assertEquals(response.getEntity(), responseEmpty);
 	}
+
+	String responseEmpty = """
+			<records xmlns="urn:nbn:se:uu:ub:epc-schema:rs-location-mapping">
+				<protocol-version>3.0</protocol-version>
+			</records>""";
 
 	@Test
 	public void testParametersArePassedOnToUrnNbn() {
 		endpoint.readUrnNbn("someSerie", 10, 500);
 
-		UrnNbnSpy urnNbnSpy = (UrnNbnSpy) urnNbnFactory.MCR.getReturnValue("factorUrnNbn", 0);
-		urnNbnSpy.MCR.assertParameters(
+		UrnNbnSpy returnedUrnNbnSpy = (UrnNbnSpy) urnNbnFactory.MCR.getReturnValue("factorUrnNbn",
+				0);
+		returnedUrnNbnSpy.MCR.assertParameters(
 				"getUrnNbnFromLatestRecordsCreatedUsingRecordTypeStartAndRows", 0, "someSerie", 10,
 				500);
 	}
 
-	String emptyResponse = """
+	@Test
+	public void testReturnedIdAndUrnNbnAreTurnedIntoXML() {
+		setUpNoRecordsReturned(1);
+
+		Response response = endpoint.readUrnNbn("someSerie", 0, 50);
+
+		urnNbnSpy.MCR.assertParameters(
+				"getUrnNbnFromLatestRecordsCreatedUsingRecordTypeStartAndRows", 0, "someSerie", 0,
+				50);
+		assertEquals(response.getStatus(), Response.Status.OK.getStatusCode());
+
+		assertXmlWithoutFormatting(response.getEntity().toString(), responseOneRecord);
+		assertEquals(response.getEntity(), responseOneRecord);
+	}
+
+	String responseOneRecord = """
 			<records xmlns="urn:nbn:se:uu:ub:epc-schema:rs-location-mapping">
 				<protocol-version>3.0</protocol-version>
 				<record>
@@ -102,7 +126,7 @@ public class UrnNbnEndpointTest {
 						<identifier>urnnbn-1</identifier>
 						<destinations>
 							<destination status="activated">
-								<url>https://nordiskamuseet.diva-portal.org/divaclient/diva-output/1</url>
+								<url>https://someDomain.org/divaclient/diva-output/id-1</url>
 							</destination>
 						</destinations>
 					</header>
@@ -110,27 +134,76 @@ public class UrnNbnEndpointTest {
 			</records>""";
 
 	@Test
-	public void testReturnedIdAndUrnNbnAreTurnedIntoXML() {
-		int numberOfElements = 1;
-		UrnNbnSpy urnNbnSpy = new UrnNbnSpy();
+	public void testThreeRecordsReturned() {
+		setUpNoRecordsReturned(3);
+
+		Response response = endpoint.readUrnNbn("someSerie", 0, 50);
+
+		urnNbnSpy.MCR.assertParameters(
+				"getUrnNbnFromLatestRecordsCreatedUsingRecordTypeStartAndRows", 0, "someSerie", 0,
+				50);
+		assertEquals(response.getStatus(), Response.Status.OK.getStatusCode());
+		assertXmlWithoutFormatting(response.getEntity().toString(), responseThreeRecords);
+		assertEquals(response.getEntity(), responseThreeRecords);
+	}
+
+	String responseThreeRecords = """
+			<records xmlns="urn:nbn:se:uu:ub:epc-schema:rs-location-mapping">
+				<protocol-version>3.0</protocol-version>
+				<record>
+					<header>
+						<identifier>urnnbn-1</identifier>
+						<destinations>
+							<destination status="activated">
+								<url>https://someDomain.org/divaclient/diva-output/id-1</url>
+							</destination>
+						</destinations>
+					</header>
+				</record>
+				<record>
+					<header>
+						<identifier>urnnbn-2</identifier>
+						<destinations>
+							<destination status="activated">
+								<url>https://someDomain.org/divaclient/diva-output/id-2</url>
+							</destination>
+						</destinations>
+					</header>
+				</record>
+				<record>
+					<header>
+						<identifier>urnnbn-3</identifier>
+						<destinations>
+							<destination status="activated">
+								<url>https://someDomain.org/divaclient/diva-output/id-3</url>
+							</destination>
+						</destinations>
+					</header>
+				</record>
+			</records>""";
+
+	private void setUpNoRecordsReturned(int numberofEl) {
 		urnNbnSpy.MRV.setDefaultReturnValuesSupplier(
 				"getUrnNbnFromLatestRecordsCreatedUsingRecordTypeStartAndRows",
-				() -> getListOfUrnNbns(numberOfElements));
+				() -> getListOfUrnNbns(numberofEl));
 		urnNbnFactory.MRV.setDefaultReturnValuesSupplier("factorUrnNbn", () -> urnNbnSpy);
-
-		Response response = endpoint.readUrnNbn("someSerie", 0, 1);
-		assertEquals(response.getStatus(), Response.Status.OK.getStatusCode());
-		assertEquals(response.getEntity(), emptyResponse);
-
 	}
 
 	private Set<IdAndUrnNbn> getListOfUrnNbns(int numberOfElements) {
 		Set<IdAndUrnNbn> urnNbnList = new LinkedHashSet<>();
-		for (int i = 0; i < numberOfElements; i++) {
+		for (int i = 1; i <= numberOfElements; i++) {
 			IdAndUrnNbn idAndUrnNbnI = new IdAndUrnNbn("id-" + i, "urnnbn-" + i);
 			urnNbnList.add(idAndUrnNbnI);
 		}
 		return urnNbnList;
+	}
+
+	private void assertXmlWithoutFormatting(String returnedXml, String expectedXml) {
+		assertEquals(removeXmlIndent(returnedXml), removeXmlIndent(expectedXml));
+	}
+
+	String removeXmlIndent(String xml) {
+		return xml.replaceAll("\n", "").replaceAll("\t", "");
 	}
 
 }
