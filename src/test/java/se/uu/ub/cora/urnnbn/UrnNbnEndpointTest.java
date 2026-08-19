@@ -27,6 +27,9 @@ import org.testng.annotations.Test;
 import jakarta.ws.rs.core.Response;
 import se.uu.ub.cora.logger.LoggerProvider;
 import se.uu.ub.cora.logger.spies.LoggerFactorySpy;
+import se.uu.ub.cora.urnnbn.dependency.UrnNbnInstanceFactory;
+import se.uu.ub.cora.urnnbn.dependency.UrnNbnInstanceFactorySpy;
+import se.uu.ub.cora.urnnbn.dependency.UrnNbnInstanceProvider;
 import se.uu.ub.cora.urnnbn.spy.HttpServletRequestSpy;
 
 public class UrnNbnEndpointTest {
@@ -61,6 +64,10 @@ public class UrnNbnEndpointTest {
 	public void beforeMethod() {
 		loggerFactorySpy = new LoggerFactorySpy();
 		LoggerProvider.setLoggerFactory(loggerFactorySpy);
+
+		UrnNbnInstanceFactory factory = new UrnNbnInstanceFactorySpy();
+		UrnNbnInstanceProvider.onlyForTestSetUrnNbnInstanceFactory(factory);
+
 		// dataFactorySpy = new DataFactorySpy();
 		// DataProvider.onlyForTestSetDataFactory(dataFactorySpy);
 		// setupUrlHandler();
