@@ -19,6 +19,7 @@
 
 package se.uu.ub.cora.urnnbn;
 
+import java.util.Iterator;
 import java.util.Set;
 
 import jakarta.servlet.http.HttpServletRequest;
@@ -38,6 +39,7 @@ import se.uu.ub.cora.urnnbn.dependency.UrnNbnInstanceProvider;
 @Path("")
 public class UrnNbnEndpoint {
 	private static final String APPLICATION_XML = "application/xml";
+	private static final String URL_TO_CLIENT = "https://someDomain.org/divaclient/diva-output/";
 	HttpServletRequest request;
 	private Logger log = LoggerProvider.getLoggerForClass(UrnNbnEndpoint.class);
 
@@ -52,45 +54,40 @@ public class UrnNbnEndpoint {
 			@QueryParam("start") @DefaultValue("0") int start,
 			@QueryParam("rows") @DefaultValue("50000") int rows) {
 		UrnNbn urnNbn = UrnNbnInstanceProvider.getUrnNbn();
-		Set<IdAndUrnNbn> urnSet = urnNbn
+		Set<IdAndUrnNbn> urnNbnSet = urnNbn
 				.getUrnNbnFromLatestRecordsCreatedUsingRecordTypeStartAndRows(serie, start, rows);
 
-		// String emptyResponse = """
-		// <records xmlns="urn:nbn:se:uu:ub:epc-schema:rs-location-mapping">
-		// <protocol-version>3.0</protocol-version>
-		// <record>
-		// <header>
-		// <identifier>urn:nbn:se:diva-2116</identifier>
-		// <destinations>
-		// <destination status="activated">
-		// <url>https://nordiskamuseet.diva-portal.org/divaclient/diva-output/2116</url>
-		// </destination>
-		// </destinations>
-		// </header>
-		// </record>
-		// </records>""";
-		String emptyResponse = """
-				<records xmlns="urn:nbn:se:uu:ub:epc-schema:rs-location-mapping">
-					<protocol-version>3.0</protocol-version>
-
-				</records>""";
+		String xml = toXml(urnNbnSet);
 		return Response.status(Response.Status.OK).header(HttpHeaders.CONTENT_TYPE, APPLICATION_XML)
-				.entity(emptyResponse).build();
+				.entity(xml).build();
 	}
 
-	String getRecordsXmlPartForSet(Set<IdAndUrnNbn> urnSet) {
-		return """
-				<record>
-					<header>
-						<identifier>urn:nbn:se:diva-2116</identifier>
-						<destinations>
-							<destination status="activated">
-								<url>https://nordiskamuseet.diva-portal.org/divaclient/diva-output/2116</url>
-							</destination>
-						</destinations>
-					</header>
-				</record>
-				""";
+	private String toXml(Set<IdAndUrnNbn> urnSet) {
+		StringBuilder urnNbnRecord = new StringBuilder();
+		for (Iterator<IdAndUrnNbn> iterator = urnSet.iterator(); iterator.hasNext();) {
+			IdAndUrnNbn idAndUrnNbn = iterator.next();
+			urnNbnRecord.append(getRecordsXmlPartForSet(idAndUrnNbn));
+		}
+		String urnNbnRecordsAsXml = """
+				<records xmlns="urn:nbn:se:uu:ub:epc-schema:rs-location-mapping">
+					<protocol-version>3.0</protocol-version>%s
+				</records>""";
+		return urnNbnRecordsAsXml.formatted(urnNbnRecord);
+	}
+
+	String getRecordsXmlPartForSet(IdAndUrnNbn idAndUrnNbn) {
+		String urnNbnRecordAsXml = """
+				\n\t<record>
+						<header>
+							<identifier>%s</identifier>
+							<destinations>
+								<destination status="activated">
+									<url>%s%s</url>
+								</destination>
+							</destinations>
+						</header>
+					</record>""";
+		return urnNbnRecordAsXml.formatted(idAndUrnNbn.urnnbn(), URL_TO_CLIENT, idAndUrnNbn.id());
 	}
 
 	// Check
