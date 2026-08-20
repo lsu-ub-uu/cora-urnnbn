@@ -16,23 +16,22 @@
  *     You should have received a copy of the GNU General Public License
  *     along with Cora.  If not, see <http://www.gnu.org/licenses/>.
  */
+package se.uu.ub.cora.urnnbn.url;
 
-package se.uu.ub.cora.urnnbn.dependency;
-
-import se.uu.ub.cora.urnnbn.UrnNbn;
-import se.uu.ub.cora.urnnbn.url.UrlHandler;
-import se.uu.ub.cora.urnnbn.url.UrlHandlerImp;
-
-public final class UrnNbnInstanceFactoryImp implements UrnNbnInstanceFactory {
-
-	@Override
-	public UrnNbn factorUrnNbn() {
-		return new UrnNbnImp();
-	}
-
-	@Override
-	public UrlHandler factorUrlHandler() {
-		return new UrlHandlerImp();
-	}
-
+/**
+ * APIUrls can hold the public urls for the system
+ */
+public record APIUrls(
+		/**
+		 * baseUrl is the base url where the system can be reached
+		 */
+		String baseUrl,
+		/**
+		 * restRecordUrl is the url where the REST API of the system can be reached
+		 */
+		String restRecordUrl,
+		/**
+		 * iifUrl is the url where the IIIF API of the system can be reached
+		 */
+		String iiifUrl) {
 }

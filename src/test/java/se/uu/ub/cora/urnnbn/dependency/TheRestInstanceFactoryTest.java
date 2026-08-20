@@ -27,6 +27,8 @@ import org.testng.annotations.Test;
 import se.uu.ub.cora.logger.LoggerProvider;
 import se.uu.ub.cora.logger.spies.LoggerFactorySpy;
 import se.uu.ub.cora.urnnbn.UrnNbn;
+import se.uu.ub.cora.urnnbn.url.UrlHandler;
+import se.uu.ub.cora.urnnbn.url.UrlHandlerImp;
 
 public class TheRestInstanceFactoryTest {
 	private LoggerFactorySpy loggerFactorySpy;
@@ -45,6 +47,13 @@ public class TheRestInstanceFactoryTest {
 		UrnNbn uh = factory.factorUrnNbn();
 
 		assertTrue(uh instanceof UrnNbn);
+	}
+
+	@Test
+	public void testFactorUrlHandler() {
+		UrlHandler uh = factory.factorUrlHandler();
+
+		assertTrue(uh instanceof UrlHandlerImp);
 	}
 
 }

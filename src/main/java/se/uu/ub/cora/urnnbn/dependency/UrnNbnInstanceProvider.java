@@ -19,6 +19,7 @@
 package se.uu.ub.cora.urnnbn.dependency;
 
 import se.uu.ub.cora.urnnbn.UrnNbn;
+import se.uu.ub.cora.urnnbn.url.UrlHandler;
 
 public final class UrnNbnInstanceProvider {
 	private static UrnNbnInstanceFactory factory = new UrnNbnInstanceFactoryImp();
@@ -30,6 +31,10 @@ public final class UrnNbnInstanceProvider {
 
 	public static UrnNbn getUrnNbn() {
 		return factory.factorUrnNbn();
+	}
+
+	public static UrlHandler getUrlHandler() {
+		return factory.factorUrlHandler();
 	}
 
 	public static void onlyForTestSetUrnNbnInstanceFactory(UrnNbnInstanceFactory factory) {

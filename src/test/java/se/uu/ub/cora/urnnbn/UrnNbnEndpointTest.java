@@ -20,18 +20,22 @@ package se.uu.ub.cora.urnnbn;
 
 import static org.testng.Assert.assertEquals;
 
+import java.util.HashMap;
 import java.util.LinkedHashSet;
+import java.util.Map;
 import java.util.Set;
 
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
 import jakarta.ws.rs.core.Response;
+import se.uu.ub.cora.initialize.SettingsProvider;
 import se.uu.ub.cora.logger.LoggerProvider;
 import se.uu.ub.cora.logger.spies.LoggerFactorySpy;
 import se.uu.ub.cora.urnnbn.dependency.UrnNbnInstanceFactorySpy;
 import se.uu.ub.cora.urnnbn.dependency.UrnNbnInstanceProvider;
 import se.uu.ub.cora.urnnbn.spy.HttpServletRequestSpy;
+import se.uu.ub.cora.urnnbn.spy.UrlHandlerSpy;
 
 public class UrnNbnEndpointTest {
 
@@ -52,8 +56,39 @@ public class UrnNbnEndpointTest {
 		UrnNbnInstanceProvider.onlyForTestSetUrnNbnInstanceFactory(urnNbnFactory);
 		urnNbnSpy = new UrnNbnSpy();
 
+		setSettings();
+		setBaseUrl();
+
 		requestSpy = new HttpServletRequestSpy();
 		endpoint = new UrnNbnEndpoint(requestSpy);
+	}
+
+	// TODO: Not sure if BaseUrl returns / on the final or not
+	private void setBaseUrl() {
+		UrlHandlerSpy urlHandlerSpy = new UrlHandlerSpy();
+		urlHandlerSpy.MRV.setDefaultReturnValuesSupplier("getBaseUrl",
+				() -> "https://somedomain.org");
+
+		urnNbnFactory.MRV.setDefaultReturnValuesSupplier("factorUrlHandler", () -> urlHandlerSpy);
+	}
+
+	// TODO: Not sure if we need two variables
+	private void setSettings() {
+		Map<String, String> urnNbnSettings = new HashMap<>();
+		urnNbnSettings.put("clientNameForUrnNbn", "someclient");
+		urnNbnSettings.put("recordTypeUsingUrnNbn", "somerecordtype");
+		SettingsProvider.setSettings(urnNbnSettings);
+	}
+
+	@Test
+	public void testParametersArePassedOnToUrnNbn() {
+		endpoint.readUrnNbn("someSerie", 10, 500);
+
+		UrnNbnSpy returnedUrnNbnSpy = (UrnNbnSpy) urnNbnFactory.MCR.getReturnValue("factorUrnNbn",
+				0);
+		returnedUrnNbnSpy.MCR.assertParameters(
+				"getUrnNbnFromLatestRecordsCreatedUsingRecordTypeStartAndRows", 0, "someSerie", 10,
+				500);
 	}
 
 	@Test
@@ -93,17 +128,6 @@ public class UrnNbnEndpointTest {
 			</records>""";
 
 	@Test
-	public void testParametersArePassedOnToUrnNbn() {
-		endpoint.readUrnNbn("someSerie", 10, 500);
-
-		UrnNbnSpy returnedUrnNbnSpy = (UrnNbnSpy) urnNbnFactory.MCR.getReturnValue("factorUrnNbn",
-				0);
-		returnedUrnNbnSpy.MCR.assertParameters(
-				"getUrnNbnFromLatestRecordsCreatedUsingRecordTypeStartAndRows", 0, "someSerie", 10,
-				500);
-	}
-
-	@Test
 	public void testReturnedIdAndUrnNbnAreTurnedIntoXML() {
 		setUpNoRecordsReturned(1);
 
@@ -126,7 +150,7 @@ public class UrnNbnEndpointTest {
 						<identifier>urnnbn-1</identifier>
 						<destinations>
 							<destination status="activated">
-								<url>https://someDomain.org/divaclient/diva-output/id-1</url>
+								<url>https://somedomain.org/someclient/somerecordtype/id-1</url>
 							</destination>
 						</destinations>
 					</header>
@@ -155,7 +179,7 @@ public class UrnNbnEndpointTest {
 						<identifier>urnnbn-1</identifier>
 						<destinations>
 							<destination status="activated">
-								<url>https://someDomain.org/divaclient/diva-output/id-1</url>
+								<url>https://somedomain.org/someclient/somerecordtype/id-1</url>
 							</destination>
 						</destinations>
 					</header>
@@ -165,7 +189,7 @@ public class UrnNbnEndpointTest {
 						<identifier>urnnbn-2</identifier>
 						<destinations>
 							<destination status="activated">
-								<url>https://someDomain.org/divaclient/diva-output/id-2</url>
+								<url>https://somedomain.org/someclient/somerecordtype/id-2</url>
 							</destination>
 						</destinations>
 					</header>
@@ -175,7 +199,7 @@ public class UrnNbnEndpointTest {
 						<identifier>urnnbn-3</identifier>
 						<destinations>
 							<destination status="activated">
-								<url>https://someDomain.org/divaclient/diva-output/id-3</url>
+								<url>https://somedomain.org/someclient/somerecordtype/id-3</url>
 							</destination>
 						</destinations>
 					</header>

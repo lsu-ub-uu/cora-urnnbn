@@ -22,6 +22,8 @@ import se.uu.ub.cora.testutils.mcr.MethodCallRecorder;
 import se.uu.ub.cora.testutils.mrv.MethodReturnValues;
 import se.uu.ub.cora.urnnbn.UrnNbn;
 import se.uu.ub.cora.urnnbn.UrnNbnSpy;
+import se.uu.ub.cora.urnnbn.spy.UrlHandlerSpy;
+import se.uu.ub.cora.urnnbn.url.UrlHandler;
 
 public class UrnNbnInstanceFactorySpy implements UrnNbnInstanceFactory {
 	public MethodCallRecorder MCR = new MethodCallRecorder();
@@ -30,10 +32,16 @@ public class UrnNbnInstanceFactorySpy implements UrnNbnInstanceFactory {
 	public UrnNbnInstanceFactorySpy() {
 		MCR.useMRV(MRV);
 		MRV.setDefaultReturnValuesSupplier("factorUrnNbn", UrnNbnSpy::new);
+		MRV.setDefaultReturnValuesSupplier("factorUrlHandler", UrlHandlerSpy::new);
 	}
 
 	@Override
 	public UrnNbn factorUrnNbn() {
 		return (UrnNbn) MCR.addCallAndReturnFromMRV();
+	}
+
+	@Override
+	public UrlHandler factorUrlHandler() {
+		return (UrlHandlerSpy) MCR.addCallAndReturnFromMRV();
 	}
 }

@@ -32,19 +32,22 @@ import jakarta.ws.rs.QueryParam;
 import jakarta.ws.rs.core.Context;
 import jakarta.ws.rs.core.HttpHeaders;
 import jakarta.ws.rs.core.Response;
+import se.uu.ub.cora.initialize.SettingsProvider;
 import se.uu.ub.cora.logger.Logger;
 import se.uu.ub.cora.logger.LoggerProvider;
 import se.uu.ub.cora.urnnbn.dependency.UrnNbnInstanceProvider;
+import se.uu.ub.cora.urnnbn.url.UrlHandler;
 
 @Path("")
 public class UrnNbnEndpoint {
 	private static final String APPLICATION_XML = "application/xml";
-	private static final String URL_TO_CLIENT = "https://someDomain.org/divaclient/diva-output/";
 	HttpServletRequest request;
 	private Logger log = LoggerProvider.getLoggerForClass(UrnNbnEndpoint.class);
+	private String urlToClient;
 
 	public UrnNbnEndpoint(@Context HttpServletRequest req) {
 		request = req;
+
 	}
 
 	@GET
@@ -56,6 +59,13 @@ public class UrnNbnEndpoint {
 		UrnNbn urnNbn = UrnNbnInstanceProvider.getUrnNbn();
 		Set<IdAndUrnNbn> urnNbnSet = urnNbn
 				.getUrnNbnFromLatestRecordsCreatedUsingRecordTypeStartAndRows(serie, start, rows);
+
+		// TODO: Clean up! Move to constructor
+		UrlHandler urlHandler = UrnNbnInstanceProvider.getUrlHandler();
+		String baseUrl = urlHandler.getBaseUrl(request);
+		String clientNameForUrnNbn = SettingsProvider.getSetting("clientNameForUrnNbn");
+		String recordTypeUsingUrnNbn = SettingsProvider.getSetting("recordTypeUsingUrnNbn");
+		urlToClient = "%s/%s/%s/".formatted(baseUrl, clientNameForUrnNbn, recordTypeUsingUrnNbn);
 
 		String xml = toXml(urnNbnSet);
 		return Response.status(Response.Status.OK).header(HttpHeaders.CONTENT_TYPE, APPLICATION_XML)
@@ -87,7 +97,7 @@ public class UrnNbnEndpoint {
 							</destinations>
 						</header>
 					</record>""";
-		return urnNbnRecordAsXml.formatted(idAndUrnNbn.urnnbn(), URL_TO_CLIENT, idAndUrnNbn.id());
+		return urnNbnRecordAsXml.formatted(idAndUrnNbn.urnnbn(), urlToClient, idAndUrnNbn.id());
 	}
 
 	// Check

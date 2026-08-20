@@ -20,9 +20,12 @@
 package se.uu.ub.cora.urnnbn.dependency;
 
 import se.uu.ub.cora.urnnbn.UrnNbn;
+import se.uu.ub.cora.urnnbn.url.UrlHandler;
 
 public interface UrnNbnInstanceFactory {
 
 	UrnNbn factorUrnNbn();
+
+	UrlHandler factorUrlHandler();
 
 }

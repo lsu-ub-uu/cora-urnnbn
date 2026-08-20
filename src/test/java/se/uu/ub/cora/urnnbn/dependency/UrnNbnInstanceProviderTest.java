@@ -30,6 +30,7 @@ import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
 import se.uu.ub.cora.urnnbn.UrnNbn;
+import se.uu.ub.cora.urnnbn.url.UrlHandler;
 
 public class UrnNbnInstanceProviderTest {
 	private UrnNbnInstanceFactorySpy factory;
@@ -78,6 +79,14 @@ public class UrnNbnInstanceProviderTest {
 		UrnNbn uh = UrnNbnInstanceProvider.getUrnNbn();
 
 		factory.MCR.assertReturn("factorUrnNbn", 0, uh);
+	}
+
+	@Test(dependsOnMethods = "testDefaultInstanceFactoryIsSet")
+	public void testGetUrnHandler() {
+		setSpyFactory();
+		UrlHandler uh = UrnNbnInstanceProvider.getUrlHandler();
+
+		factory.MCR.assertReturn("factorUrlHandler", 0, uh);
 	}
 
 }
