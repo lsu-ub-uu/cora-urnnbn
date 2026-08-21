@@ -80,14 +80,8 @@ public class UrnNbnEndpointTest {
 	}
 
 	@Test
-	public void testParametersArePassedOnToUrnNbn() {
-		endpoint.readUrnNbn("someSerie", 10, 500);
-
-		UrnNbnSpy returnedUrnNbnSpy = (UrnNbnSpy) urnNbnFactory.MCR.getReturnValue("factorUrnNbn",
-				0);
-		returnedUrnNbnSpy.MCR.assertParameters(
-				"getUrnNbnFromLatestRecordsCreatedUsingRecordTypeStartAndRows", 0, "someSerie", 10,
-				500);
+	public void testReadOnlyOnce() {
+		urnNbnFactory.MCR.assertNumberOfCallsToMethod("factorUrlHandler", 1);
 	}
 
 	@Test
@@ -104,6 +98,17 @@ public class UrnNbnEndpointTest {
 
 		annotationHelper.assertQueryParamAnnotationByNameAndPosition("rows", 2);
 		annotationHelper.assertDefaultVauleParamAnnotationByNameAndPosition("50000", 2);
+	}
+
+	@Test
+	public void testParametersArePassedOnToUrnNbn() {
+		endpoint.readUrnNbn("someSerie", 10, 500);
+
+		UrnNbnSpy returnedUrnNbnSpy = (UrnNbnSpy) urnNbnFactory.MCR.getReturnValue("factorUrnNbn",
+				0);
+		returnedUrnNbnSpy.MCR.assertParameters(
+				"getUrnNbnFromLatestRecordsCreatedUsingRecordTypeStartAndRows", 0, "someSerie", 10,
+				500);
 	}
 
 	@Test

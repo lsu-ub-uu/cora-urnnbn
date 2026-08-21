@@ -43,11 +43,13 @@ public class UrnNbnEndpoint {
 	private static final String APPLICATION_XML = "application/xml";
 	HttpServletRequest request;
 	private Logger log = LoggerProvider.getLoggerForClass(UrnNbnEndpoint.class);
-	private String urlToClient;
+	private String urlPatternForUrnNbn;
+	private UrlHandler urlHandler;
 
 	public UrnNbnEndpoint(@Context HttpServletRequest req) {
 		request = req;
-
+		urlPatternForUrnNbn = SettingsProvider.getSetting("urlPatternForUrnNbn");
+		urlHandler = UrnNbnInstanceProvider.getUrlHandler();
 	}
 
 	@GET
@@ -60,33 +62,33 @@ public class UrnNbnEndpoint {
 		Set<IdAndUrnNbn> urnNbnSet = urnNbn
 				.getUrnNbnFromLatestRecordsCreatedUsingRecordTypeStartAndRows(serie, start, rows);
 
-		// TODO: Clean up! Move to constructor
-		UrlHandler urlHandler = UrnNbnInstanceProvider.getUrlHandler();
-		String baseUrl = urlHandler.getBaseUrl(request);
-		String urlPatternForUrnNbn = SettingsProvider.getSetting("urlPatternForUrnNbn");
-
-		urlToClient = baseUrl.concat(urlPatternForUrnNbn);
-
-		String xml = toXml(urnNbnSet);
+		String urnNbnRecordsAsXml = parseToXml(urnNbnSet);
 		return Response.status(Response.Status.OK).header(HttpHeaders.CONTENT_TYPE, APPLICATION_XML)
-				.entity(xml).build();
+				.entity(urnNbnRecordsAsXml).build();
 	}
 
-	private String toXml(Set<IdAndUrnNbn> urnSet) {
-		StringBuilder urnNbnRecord = new StringBuilder();
+	private String buildUrlToRecord() {
+		String baseUrl = urlHandler.getBaseUrl(request);
+		return baseUrl.concat(urlPatternForUrnNbn);
+	}
+
+	private String parseToXml(Set<IdAndUrnNbn> urnSet) {
+		String urlToClient = buildUrlToRecord();
+		StringBuilder urnNbnRecords = new StringBuilder();
 		for (Iterator<IdAndUrnNbn> iterator = urnSet.iterator(); iterator.hasNext();) {
 			IdAndUrnNbn idAndUrnNbn = iterator.next();
 			String url = urlToClient.replace("%id%", idAndUrnNbn.id());
-			urnNbnRecord.append(getRecordsXmlPartForSet(idAndUrnNbn.urnnbn(), url));
+			String recordAsXml = getRecordXmlPartForSet(idAndUrnNbn.urnnbn(), url);
+			urnNbnRecords.append(recordAsXml);
 		}
 		String urnNbnRecordsAsXml = """
 				<records xmlns="urn:nbn:se:uu:ub:epc-schema:rs-location-mapping">
 					<protocol-version>3.0</protocol-version>%s
 				</records>""";
-		return urnNbnRecordsAsXml.formatted(urnNbnRecord);
+		return urnNbnRecordsAsXml.formatted(urnNbnRecords);
 	}
 
-	String getRecordsXmlPartForSet(String urnnbn, String url) {
+	String getRecordXmlPartForSet(String urnnbn, String url) {
 		String urnNbnRecordAsXml = """
 				\n\t<record>
 						<header>
