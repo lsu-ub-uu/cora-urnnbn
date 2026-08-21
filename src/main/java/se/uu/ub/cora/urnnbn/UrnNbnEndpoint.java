@@ -63,9 +63,9 @@ public class UrnNbnEndpoint {
 		// TODO: Clean up! Move to constructor
 		UrlHandler urlHandler = UrnNbnInstanceProvider.getUrlHandler();
 		String baseUrl = urlHandler.getBaseUrl(request);
-		String clientNameForUrnNbn = SettingsProvider.getSetting("clientNameForUrnNbn");
-		String recordTypeUsingUrnNbn = SettingsProvider.getSetting("recordTypeUsingUrnNbn");
-		urlToClient = "%s/%s/%s/".formatted(baseUrl, clientNameForUrnNbn, recordTypeUsingUrnNbn);
+		String urlPatternForUrnNbn = SettingsProvider.getSetting("urlPatternForUrnNbn");
+
+		urlToClient = baseUrl.concat(urlPatternForUrnNbn);
 
 		String xml = toXml(urnNbnSet);
 		return Response.status(Response.Status.OK).header(HttpHeaders.CONTENT_TYPE, APPLICATION_XML)
@@ -76,7 +76,8 @@ public class UrnNbnEndpoint {
 		StringBuilder urnNbnRecord = new StringBuilder();
 		for (Iterator<IdAndUrnNbn> iterator = urnSet.iterator(); iterator.hasNext();) {
 			IdAndUrnNbn idAndUrnNbn = iterator.next();
-			urnNbnRecord.append(getRecordsXmlPartForSet(idAndUrnNbn));
+			String url = urlToClient.replace("%id%", idAndUrnNbn.id());
+			urnNbnRecord.append(getRecordsXmlPartForSet(idAndUrnNbn.urnnbn(), url));
 		}
 		String urnNbnRecordsAsXml = """
 				<records xmlns="urn:nbn:se:uu:ub:epc-schema:rs-location-mapping">
@@ -85,19 +86,19 @@ public class UrnNbnEndpoint {
 		return urnNbnRecordsAsXml.formatted(urnNbnRecord);
 	}
 
-	String getRecordsXmlPartForSet(IdAndUrnNbn idAndUrnNbn) {
+	String getRecordsXmlPartForSet(String urnnbn, String url) {
 		String urnNbnRecordAsXml = """
 				\n\t<record>
 						<header>
 							<identifier>%s</identifier>
 							<destinations>
 								<destination status="activated">
-									<url>%s%s</url>
+									<url>%s</url>
 								</destination>
 							</destinations>
 						</header>
 					</record>""";
-		return urnNbnRecordAsXml.formatted(idAndUrnNbn.urnnbn(), urlToClient, idAndUrnNbn.id());
+		return urnNbnRecordAsXml.formatted(urnnbn, url);
 	}
 
 	// Check

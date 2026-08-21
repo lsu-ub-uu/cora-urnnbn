@@ -75,8 +75,7 @@ public class UrnNbnEndpointTest {
 	// TODO: Not sure if we need two variables
 	private void setSettings() {
 		Map<String, String> urnNbnSettings = new HashMap<>();
-		urnNbnSettings.put("clientNameForUrnNbn", "someclient");
-		urnNbnSettings.put("recordTypeUsingUrnNbn", "somerecordtype");
+		urnNbnSettings.put("urlPatternForUrnNbn", "/someclient/somerecordtype/%id%");
 		SettingsProvider.setSettings(urnNbnSettings);
 	}
 
