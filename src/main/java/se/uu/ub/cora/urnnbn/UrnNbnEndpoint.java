@@ -60,7 +60,7 @@ public class UrnNbnEndpoint {
 			@QueryParam("rows") @DefaultValue("50000") int rows) {
 		UrnNbn urnNbn = UrnNbnInstanceProvider.getUrnNbn();
 		Set<IdAndUrnNbn> urnNbnSet = urnNbn
-				.getUrnNbnFromLatestRecordsCreatedUsingRecordTypeStartAndRows(serie, start, rows);
+				.getUsingSeriesStartAndRows(serie, start, rows);
 
 		String urnNbnRecordsAsXml = parseToXml(urnNbnSet);
 		return Response.status(Response.Status.OK).header(HttpHeaders.CONTENT_TYPE, APPLICATION_XML)

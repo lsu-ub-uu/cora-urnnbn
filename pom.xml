@@ -73,6 +73,8 @@
 		<iiif.version>1.1.0</iiif.version>
 		<search.version>6.0.0</search.version>
 		<storagespies.version>1.15.0</storagespies.version>
+
+		<sqldatabase.version>7.7.0</sqldatabase.version>
 		
 		<initialize.version>1.8.0</initialize.version>
 		<initialize-spies.version>1.7.0</initialize-spies.version>
@@ -186,6 +188,11 @@
 			<artifactId>initialize</artifactId>
 			<version>${initialize.version}</version>
 			<scope>compile</scope>
+		</dependency>
+		<dependency>
+			<groupId>se.uu.ub.cora</groupId>
+			<artifactId>sqldatabase</artifactId>
+			<version>${sqldatabase.version}</version>
 		</dependency>
 		<dependency>
 			<groupId>se.uu.ub.cora</groupId>

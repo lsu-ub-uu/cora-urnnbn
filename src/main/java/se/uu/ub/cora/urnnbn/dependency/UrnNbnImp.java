@@ -20,15 +20,28 @@ package se.uu.ub.cora.urnnbn.dependency;
 
 import java.util.Set;
 
+import se.uu.ub.cora.sqldatabase.SqlDatabaseFactory;
+import se.uu.ub.cora.sqldatabase.table.TableFacade;
 import se.uu.ub.cora.urnnbn.IdAndUrnNbn;
 import se.uu.ub.cora.urnnbn.UrnNbn;
 
 public class UrnNbnImp implements UrnNbn {
 
+	private SqlDatabaseFactory sqlDatabaseFactory;
+
+	public static UrnNbnImp createUrnNbnUsingSqlDatabaseFactory(
+			SqlDatabaseFactory sqlDatabaseFactory) {
+		return new UrnNbnImp(sqlDatabaseFactory);
+	}
+
+	private UrnNbnImp(SqlDatabaseFactory sqlDatabaseFactory) {
+		this.sqlDatabaseFactory = sqlDatabaseFactory;
+	}
+
 	@Override
-	public Set<IdAndUrnNbn> getUrnNbnFromLatestRecordsCreatedUsingRecordTypeStartAndRows(
-			String serie, int start, int rows) {
-		// TODO Auto-generated method stub
+	public Set<IdAndUrnNbn> getUsingSeriesStartAndRows(String serie, int start, int rows) {
+		TableFacade tableFacade = sqlDatabaseFactory.factorTableFacade();
+
 		return null;
 	}
 

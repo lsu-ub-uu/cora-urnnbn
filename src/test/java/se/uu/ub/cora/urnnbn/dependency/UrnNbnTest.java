@@ -16,31 +16,34 @@
  *     You should have received a copy of the GNU General Public License
  *     along with Cora.  If not, see <http://www.gnu.org/licenses/>.
  */
-package se.uu.ub.cora.urnnbn;
+package se.uu.ub.cora.urnnbn.dependency;
 
-import java.util.Collections;
-import java.util.Set;
+import org.testng.annotations.BeforeMethod;
+import org.testng.annotations.Test;
 
-import se.uu.ub.cora.testutils.mcr.MethodCallRecorder;
-import se.uu.ub.cora.testutils.mrv.MethodReturnValues;
+import se.uu.ub.cora.urnnbn.UrnNbn;
+import se.uu.ub.cora.urnnbn.spy.sql.sql.SqlDatabaseFactorySpy;
 
-public class UrnNbnSpy implements UrnNbn {
+public class UrnNbnTest {
 
-	public MethodCallRecorder MCR = new MethodCallRecorder();
-	public MethodReturnValues MRV = new MethodReturnValues();
+	private UrnNbn urnnbn;
+	// private DatabaseFacadeSpy databaseFacadeSpy;
+	private SqlDatabaseFactorySpy sqlDatabaseFactory;
 
-	public UrnNbnSpy() {
-		MCR.useMRV(MRV);
-		MRV.setDefaultReturnValuesSupplier(
-				"getUrnNbnFromLatestRecordsCreatedUsingRecordTypeStartAndRows",
-				Collections::emptySet);
+	@BeforeMethod
+	public void beforeMethod() {
+
+		// databaseFacadeSpy = new DatabaseFacadeSpy();
+		sqlDatabaseFactory = new SqlDatabaseFactorySpy();
+		urnnbn = UrnNbnImp.createUrnNbnUsingSqlDatabaseFactory(sqlDatabaseFactory);
 	}
 
-	@Override
-	public Set<IdAndUrnNbn> getUsingSeriesStartAndRows(
-			String serie, int start, int rows) {
-		return (Set<IdAndUrnNbn>) MCR.addCallAndReturnFromMRV("serie", serie, "start", start,
-				"rows", rows);
+	@Test
+	public void testInit() {
+		urnnbn.getUsingSeriesStartAndRows(null, 0, 0);
+
+		sqlDatabaseFactory.MCR.assertMethodWasCalled("factorTableFacade");
+
 	}
 
 }
