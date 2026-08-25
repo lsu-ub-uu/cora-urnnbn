@@ -19,8 +19,7 @@
 
 package se.uu.ub.cora.urnnbn;
 
-import java.util.Iterator;
-import java.util.Set;
+import java.util.List;
 
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.ws.rs.DefaultValue;
@@ -59,10 +58,9 @@ public class UrnNbnEndpoint {
 			@QueryParam("start") @DefaultValue("0") int start,
 			@QueryParam("rows") @DefaultValue("50000") int rows) {
 		UrnNbn urnNbn = UrnNbnInstanceProvider.getUrnNbn();
-		Set<IdAndUrnNbn> urnNbnSet = urnNbn
-				.getUsingSeriesStartAndRows(serie, start, rows);
+		List<IdAndUrnNbn> urnNbnList = urnNbn.getUsingSeriesStartAndRows(serie, start, rows);
 
-		String urnNbnRecordsAsXml = parseToXml(urnNbnSet);
+		String urnNbnRecordsAsXml = parseToXml(urnNbnList);
 		return Response.status(Response.Status.OK).header(HttpHeaders.CONTENT_TYPE, APPLICATION_XML)
 				.entity(urnNbnRecordsAsXml).build();
 	}
@@ -72,11 +70,10 @@ public class UrnNbnEndpoint {
 		return baseUrl.concat(urlPatternForUrnNbn);
 	}
 
-	private String parseToXml(Set<IdAndUrnNbn> urnSet) {
+	private String parseToXml(List<IdAndUrnNbn> urnList) {
 		String urlToClient = buildUrlToRecord();
 		StringBuilder urnNbnRecords = new StringBuilder();
-		for (Iterator<IdAndUrnNbn> iterator = urnSet.iterator(); iterator.hasNext();) {
-			IdAndUrnNbn idAndUrnNbn = iterator.next();
+		for (IdAndUrnNbn idAndUrnNbn : urnList) {
 			String url = urlToClient.replace("%id%", idAndUrnNbn.id());
 			String recordAsXml = getRecordXmlPartForSet(idAndUrnNbn.urnnbn(), url);
 			urnNbnRecords.append(recordAsXml);

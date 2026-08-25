@@ -1,5 +1,5 @@
 /*
- * Copyright 2025 Uppsala University Library
+ * Copyright 2026 Uppsala University Library
  *
  * This file is part of Cora.
  *
@@ -19,6 +19,7 @@
 
 package se.uu.ub.cora.urnnbn.dependency;
 
+import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertTrue;
 
 import org.testng.annotations.BeforeMethod;
@@ -26,11 +27,11 @@ import org.testng.annotations.Test;
 
 import se.uu.ub.cora.logger.LoggerProvider;
 import se.uu.ub.cora.logger.spies.LoggerFactorySpy;
-import se.uu.ub.cora.urnnbn.UrnNbn;
+import se.uu.ub.cora.sqldatabase.SqlDatabaseFactoryImp;
 import se.uu.ub.cora.urnnbn.url.UrlHandler;
 import se.uu.ub.cora.urnnbn.url.UrlHandlerImp;
 
-public class TheRestInstanceFactoryTest {
+public class UrnNbnInstanceFactoryTest {
 	private LoggerFactorySpy loggerFactorySpy;
 	private UrnNbnInstanceFactory factory;
 
@@ -44,9 +45,19 @@ public class TheRestInstanceFactoryTest {
 
 	@Test
 	public void testFactorUrnNbn() {
-		UrnNbn uh = factory.factorUrnNbn();
+		UrnNbnImp uh = (UrnNbnImp) factory.factorUrnNbn();
 
-		assertTrue(uh instanceof UrnNbn);
+		assertTrue(uh.onlyForTestGetDatabaseFactory() instanceof SqlDatabaseFactoryImp);
+	}
+
+	@Test
+	public void testDependenciesOfDatabaseFactory() {
+		UrnNbnImp uh = (UrnNbnImp) factory.factorUrnNbn();
+
+		SqlDatabaseFactoryImp dbFactory = (SqlDatabaseFactoryImp) uh
+				.onlyForTestGetDatabaseFactory();
+
+		assertEquals(dbFactory.onlyForTestGetLookupName(), "coraDatabaseLookupName");
 	}
 
 	@Test

@@ -18,16 +18,20 @@
  */
 package se.uu.ub.cora.urnnbn.dependency;
 
-import java.util.Set;
+import java.util.ArrayList;
+import java.util.List;
 
+import se.uu.ub.cora.sqldatabase.Row;
 import se.uu.ub.cora.sqldatabase.SqlDatabaseFactory;
 import se.uu.ub.cora.sqldatabase.table.TableFacade;
+import se.uu.ub.cora.sqldatabase.table.TableQuery;
 import se.uu.ub.cora.urnnbn.IdAndUrnNbn;
 import se.uu.ub.cora.urnnbn.UrnNbn;
 
 public class UrnNbnImp implements UrnNbn {
 
 	private SqlDatabaseFactory sqlDatabaseFactory;
+	private static final String URN_VIEW = "urnnbn_records";
 
 	public static UrnNbnImp createUrnNbnUsingSqlDatabaseFactory(
 			SqlDatabaseFactory sqlDatabaseFactory) {
@@ -39,10 +43,39 @@ public class UrnNbnImp implements UrnNbn {
 	}
 
 	@Override
-	public Set<IdAndUrnNbn> getUsingSeriesStartAndRows(String serie, int start, int rows) {
+	public List<IdAndUrnNbn> getUsingSeriesStartAndRows(String serie, int start, int rows) {
 		TableFacade tableFacade = sqlDatabaseFactory.factorTableFacade();
+		TableQuery tableQuery = createTableQuerieForSerie(serie, start, rows);
+		List<Row> rowsForQuery = tableFacade.readRowsForQuery(tableQuery);
+		return parseRowsToIdAndUrnNbnList(rowsForQuery);
+	}
 
-		return null;
+	private TableQuery createTableQuerieForSerie(String serie, int start, int rows) {
+		TableQuery tableQuery = sqlDatabaseFactory.factorTableQuery(URN_VIEW);
+		tableQuery.addCondition("serie", serie);
+		long startAslong = Long.valueOf(start) + 1;
+		tableQuery.setFromNo(startAslong);
+		tableQuery.setToNo(Long.valueOf(start) + Long.valueOf(rows));
+		return tableQuery;
+	}
+
+	private List<IdAndUrnNbn> parseRowsToIdAndUrnNbnList(List<Row> rowsForQuery) {
+		List<IdAndUrnNbn> urnList = new ArrayList<>();
+		for (Row row : rowsForQuery) {
+			IdAndUrnNbn idAndUrnNbn = getIdAndUrnNbnFromRow(row);
+			urnList.add(idAndUrnNbn);
+		}
+		return urnList;
+	}
+
+	private IdAndUrnNbn getIdAndUrnNbnFromRow(Row row) {
+		String id = (String) row.getValueByColumn("id");
+		String urnnbn = (String) row.getValueByColumn("urnnbn");
+		return new IdAndUrnNbn(id, urnnbn);
+	}
+
+	public SqlDatabaseFactory onlyForTestGetDatabaseFactory() {
+		return sqlDatabaseFactory;
 	}
 
 }

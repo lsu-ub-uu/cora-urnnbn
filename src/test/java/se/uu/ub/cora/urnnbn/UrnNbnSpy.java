@@ -19,7 +19,7 @@
 package se.uu.ub.cora.urnnbn;
 
 import java.util.Collections;
-import java.util.Set;
+import java.util.List;
 
 import se.uu.ub.cora.testutils.mcr.MethodCallRecorder;
 import se.uu.ub.cora.testutils.mrv.MethodReturnValues;
@@ -31,15 +31,12 @@ public class UrnNbnSpy implements UrnNbn {
 
 	public UrnNbnSpy() {
 		MCR.useMRV(MRV);
-		MRV.setDefaultReturnValuesSupplier(
-				"getUrnNbnFromLatestRecordsCreatedUsingRecordTypeStartAndRows",
-				Collections::emptySet);
+		MRV.setDefaultReturnValuesSupplier("getUsingSeriesStartAndRows", Collections::emptyList);
 	}
 
 	@Override
-	public Set<IdAndUrnNbn> getUsingSeriesStartAndRows(
-			String serie, int start, int rows) {
-		return (Set<IdAndUrnNbn>) MCR.addCallAndReturnFromMRV("serie", serie, "start", start,
+	public List<IdAndUrnNbn> getUsingSeriesStartAndRows(String serie, int start, int rows) {
+		return (List<IdAndUrnNbn>) MCR.addCallAndReturnFromMRV("serie", serie, "start", start,
 				"rows", rows);
 	}
 

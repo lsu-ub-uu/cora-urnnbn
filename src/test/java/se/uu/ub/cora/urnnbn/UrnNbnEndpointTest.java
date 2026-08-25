@@ -20,10 +20,10 @@ package se.uu.ub.cora.urnnbn;
 
 import static org.testng.Assert.assertEquals;
 
+import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.LinkedHashSet;
+import java.util.List;
 import java.util.Map;
-import java.util.Set;
 
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
@@ -106,8 +106,7 @@ public class UrnNbnEndpointTest {
 
 		UrnNbnSpy returnedUrnNbnSpy = (UrnNbnSpy) urnNbnFactory.MCR.getReturnValue("factorUrnNbn",
 				0);
-		returnedUrnNbnSpy.MCR.assertParameters(
-				"getUrnNbnFromLatestRecordsCreatedUsingRecordTypeStartAndRows", 0, "someSerie", 10,
+		returnedUrnNbnSpy.MCR.assertParameters("getUsingSeriesStartAndRows", 0, "someSerie", 10,
 				500);
 	}
 
@@ -117,9 +116,7 @@ public class UrnNbnEndpointTest {
 
 		Response response = endpoint.readUrnNbn("someSerie", 0, 50);
 
-		urnNbnSpy.MCR.assertParameters(
-				"getUrnNbnFromLatestRecordsCreatedUsingRecordTypeStartAndRows", 0, "someSerie", 0,
-				50);
+		urnNbnSpy.MCR.assertParameters("getUsingSeriesStartAndRows", 0, "someSerie", 0, 50);
 		assertEquals(response.getStatus(), Response.Status.OK.getStatusCode());
 
 		assertXmlWithoutFormatting(response.getEntity().toString(), responseEmpty);
@@ -137,9 +134,7 @@ public class UrnNbnEndpointTest {
 
 		Response response = endpoint.readUrnNbn("someSerie", 0, 50);
 
-		urnNbnSpy.MCR.assertParameters(
-				"getUrnNbnFromLatestRecordsCreatedUsingRecordTypeStartAndRows", 0, "someSerie", 0,
-				50);
+		urnNbnSpy.MCR.assertParameters("getUsingSeriesStartAndRows", 0, "someSerie", 0, 50);
 		assertEquals(response.getStatus(), Response.Status.OK.getStatusCode());
 
 		assertXmlWithoutFormatting(response.getEntity().toString(), responseOneRecord);
@@ -167,9 +162,7 @@ public class UrnNbnEndpointTest {
 
 		Response response = endpoint.readUrnNbn("someSerie", 0, 50);
 
-		urnNbnSpy.MCR.assertParameters(
-				"getUrnNbnFromLatestRecordsCreatedUsingRecordTypeStartAndRows", 0, "someSerie", 0,
-				50);
+		urnNbnSpy.MCR.assertParameters("getUsingSeriesStartAndRows", 0, "someSerie", 0, 50);
 		assertEquals(response.getStatus(), Response.Status.OK.getStatusCode());
 		assertXmlWithoutFormatting(response.getEntity().toString(), responseThreeRecords);
 		assertEquals(response.getEntity(), responseThreeRecords);
@@ -211,14 +204,13 @@ public class UrnNbnEndpointTest {
 			</records>""";
 
 	private void setUpNoRecordsReturned(int numberofEl) {
-		urnNbnSpy.MRV.setDefaultReturnValuesSupplier(
-				"getUrnNbnFromLatestRecordsCreatedUsingRecordTypeStartAndRows",
+		urnNbnSpy.MRV.setDefaultReturnValuesSupplier("getUsingSeriesStartAndRows",
 				() -> getListOfUrnNbns(numberofEl));
 		urnNbnFactory.MRV.setDefaultReturnValuesSupplier("factorUrnNbn", () -> urnNbnSpy);
 	}
 
-	private Set<IdAndUrnNbn> getListOfUrnNbns(int numberOfElements) {
-		Set<IdAndUrnNbn> urnNbnList = new LinkedHashSet<>();
+	private List<IdAndUrnNbn> getListOfUrnNbns(int numberOfElements) {
+		List<IdAndUrnNbn> urnNbnList = new ArrayList<>();
 		for (int i = 1; i <= numberOfElements; i++) {
 			IdAndUrnNbn idAndUrnNbnI = new IdAndUrnNbn("id-" + i, "urnnbn-" + i);
 			urnNbnList.add(idAndUrnNbnI);

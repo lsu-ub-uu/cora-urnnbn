@@ -18,10 +18,10 @@
  */
 package se.uu.ub.cora.urnnbn;
 
-import java.util.Set;
+import java.util.List;
 
 public interface UrnNbn {
 
-	public Set<IdAndUrnNbn> getUsingSeriesStartAndRows(
-			String serie, int start, int rows);
+	public List<IdAndUrnNbn> getUsingSeriesStartAndRows(String serie, int start, int rows);
+
 }

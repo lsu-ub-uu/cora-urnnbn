@@ -26,6 +26,7 @@ import se.uu.ub.cora.sqldatabase.table.TableFacade;
 import se.uu.ub.cora.sqldatabase.table.TableQuery;
 import se.uu.ub.cora.testutils.mcr.MethodCallRecorder;
 import se.uu.ub.cora.testutils.mrv.MethodReturnValues;
+import se.uu.ub.cora.urnnbn.dependency.TableFacadeSpy;
 
 public class SqlDatabaseFactorySpy implements SqlDatabaseFactory {
 	public boolean throwExceptionFromTableFacadeOnRead = false;
@@ -45,7 +46,7 @@ public class SqlDatabaseFactorySpy implements SqlDatabaseFactory {
 	public SqlDatabaseFactorySpy() {
 		MCR.useMRV(MRV);
 		MRV.setDefaultReturnValuesSupplier("factorDatabaseFacade", DatabaseFacadeSpy::new);
-		MRV.setDefaultReturnValuesSupplier("factorTableFacade", DatabaseFacadeSpy::new);
+		MRV.setDefaultReturnValuesSupplier("factorTableFacade", TableFacadeSpy::new);
 		MRV.setDefaultReturnValuesSupplier("factorTableQuery", TableQuerySpy::new);
 		MRV.setDefaultReturnValuesSupplier("factorSequence", SequenceSpy::new);
 	}
@@ -57,20 +58,7 @@ public class SqlDatabaseFactorySpy implements SqlDatabaseFactory {
 
 	@Override
 	public TableFacade factorTableFacade() {
-		MCR.addCall();
-		TableFacadeSpy tableFacadeSpy = new TableFacadeSpy();
-		tableFacadeSpy.throwExceptionOnRead = throwExceptionFromTableFacadeOnRead;
-		tableFacadeSpy.throwNotFoundExceptionOnRead = throwNotFoundExceptionFromTableFacadeOnRead;
-		tableFacadeSpy.throwDataExceptionOnRead = throwDataExceptionFromTableFacadeOnRead;
-		tableFacadeSpy.throwExceptionOnUpdate = throwExceptionFromTableFacadeOnUpdate;
-		tableFacadeSpy.throwExceptionOnDelete = throwExceptionFromTableFacadeOnDelete;
-		tableFacadeSpy.throwDuplicateException = throwDuplicateExceptionFromTableFacade;
-		tableFacadeSpy.throwSqlException = throwSqlExceptionFromTableFacade;
-		tableFacadeSpy.totalNumberOfRecordsForType = totalNumberOfRecordsForType;
-		tableFacadeSpy.numberOfAffectedRows = numberOfAffectedRows;
-		tableFacadeSpy.usingTransaction = usingTransaction;
-		MCR.addReturned(tableFacadeSpy);
-		return tableFacadeSpy;
+		return (TableFacade) MCR.addCallAndReturnFromMRV();
 	}
 
 	@Override

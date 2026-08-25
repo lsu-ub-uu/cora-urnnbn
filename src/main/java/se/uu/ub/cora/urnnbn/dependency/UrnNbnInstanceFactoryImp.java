@@ -1,5 +1,5 @@
 /*
- * Copyright 2025 Uppsala University Library
+ * Copyright 2026 Uppsala University Library
  *
  * This file is part of Cora.
  *
@@ -19,6 +19,7 @@
 
 package se.uu.ub.cora.urnnbn.dependency;
 
+import se.uu.ub.cora.sqldatabase.SqlDatabaseFactoryImp;
 import se.uu.ub.cora.urnnbn.UrnNbn;
 import se.uu.ub.cora.urnnbn.url.UrlHandler;
 import se.uu.ub.cora.urnnbn.url.UrlHandlerImp;
@@ -27,7 +28,8 @@ public final class UrnNbnInstanceFactoryImp implements UrnNbnInstanceFactory {
 
 	@Override
 	public UrnNbn factorUrnNbn() {
-		return new UrnNbnImp();
+		return UrnNbnImp.createUrnNbnUsingSqlDatabaseFactory(
+				SqlDatabaseFactoryImp.usingLookupNameFromContext("coraDatabaseLookupName"));
 	}
 
 	@Override
