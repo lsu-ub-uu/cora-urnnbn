@@ -1,5 +1,5 @@
 /*
- * Copyright 2025 Uppsala University Library
+ * Copyright 2026 Uppsala University Library
  *
  * This file is part of Cora.
  *
@@ -16,19 +16,14 @@
  *     You should have received a copy of the GNU General Public License
  *     along with Cora.  If not, see <http://www.gnu.org/licenses/>.
  */
+package se.uu.ub.cora.urnnbn;
 
-package se.uu.ub.cora.urnnbn.dependency;
+import java.util.List;
 
-import se.uu.ub.cora.urnnbn.Fetcher;
-import se.uu.ub.cora.urnnbn.Reader;
-import se.uu.ub.cora.urnnbn.url.UrlHandler;
+import se.uu.ub.cora.urnnbn.internal.FetchOptions;
 
-public interface UrnNbnInstanceFactory {
+public interface Fetcher {
 
-	Reader factorReader();
-
-	Fetcher factorFetcher();
-
-	UrlHandler factorUrlHandler();
+	public List<IdAndUrnNbn> getRecordsUsingFetchOptions(FetchOptions fetchOptions);
 
 }

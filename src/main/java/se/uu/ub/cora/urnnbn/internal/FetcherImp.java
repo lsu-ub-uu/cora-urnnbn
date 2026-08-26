@@ -16,7 +16,7 @@
  *     You should have received a copy of the GNU General Public License
  *     along with Cora.  If not, see <http://www.gnu.org/licenses/>.
  */
-package se.uu.ub.cora.urnnbn.dependency;
+package se.uu.ub.cora.urnnbn.internal;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -25,37 +25,36 @@ import se.uu.ub.cora.sqldatabase.Row;
 import se.uu.ub.cora.sqldatabase.SqlDatabaseFactory;
 import se.uu.ub.cora.sqldatabase.table.TableFacade;
 import se.uu.ub.cora.sqldatabase.table.TableQuery;
+import se.uu.ub.cora.urnnbn.Fetcher;
 import se.uu.ub.cora.urnnbn.IdAndUrnNbn;
-import se.uu.ub.cora.urnnbn.UrnNbn;
 
-public class UrnNbnImp implements UrnNbn {
+public class FetcherImp implements Fetcher {
 
 	private SqlDatabaseFactory sqlDatabaseFactory;
-	private static final String URN_VIEW = "urnnbn_all_records";
 
-	public static UrnNbnImp createUrnNbnUsingSqlDatabaseFactory(
+	public static FetcherImp createUrnNbnUsingSqlDatabaseFactory(
 			SqlDatabaseFactory sqlDatabaseFactory) {
-		return new UrnNbnImp(sqlDatabaseFactory);
+		return new FetcherImp(sqlDatabaseFactory);
 	}
 
-	private UrnNbnImp(SqlDatabaseFactory sqlDatabaseFactory) {
+	private FetcherImp(SqlDatabaseFactory sqlDatabaseFactory) {
 		this.sqlDatabaseFactory = sqlDatabaseFactory;
 	}
 
 	@Override
-	public List<IdAndUrnNbn> getUsingSeriesStartAndRows(String serie, int start, int rows) {
+	public List<IdAndUrnNbn> getRecordsUsingFetchOptions(FetchOptions fetchOptions) {
 		TableFacade tableFacade = sqlDatabaseFactory.factorTableFacade();
-		TableQuery tableQuery = createTableQuerieForSerie(serie, start, rows);
+		TableQuery tableQuery = createTableQuerieForSerie(fetchOptions);
 		List<Row> rowsForQuery = tableFacade.readRowsForQuery(tableQuery);
 		return parseRowsToIdAndUrnNbnList(rowsForQuery);
 	}
 
-	private TableQuery createTableQuerieForSerie(String serie, int start, int rows) {
-		TableQuery tableQuery = sqlDatabaseFactory.factorTableQuery(URN_VIEW);
-		tableQuery.addCondition("serie", serie);
-		long startAslong = Long.valueOf(start) + 1;
+	private TableQuery createTableQuerieForSerie(FetchOptions fetchOptions) {
+		TableQuery tableQuery = sqlDatabaseFactory.factorTableQuery(fetchOptions.viewName());
+		tableQuery.addCondition("serie", fetchOptions.serie());
+		long startAslong = Long.valueOf(fetchOptions.start()) + 1;
 		tableQuery.setFromNo(startAslong);
-		tableQuery.setToNo(Long.valueOf(start) + Long.valueOf(rows));
+		tableQuery.setToNo(Long.valueOf(fetchOptions.start()) + Long.valueOf(fetchOptions.rows()));
 		return tableQuery;
 	}
 

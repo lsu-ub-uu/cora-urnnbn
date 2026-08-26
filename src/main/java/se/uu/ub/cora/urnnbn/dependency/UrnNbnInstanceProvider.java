@@ -18,7 +18,8 @@
  */
 package se.uu.ub.cora.urnnbn.dependency;
 
-import se.uu.ub.cora.urnnbn.UrnNbn;
+import se.uu.ub.cora.urnnbn.Fetcher;
+import se.uu.ub.cora.urnnbn.Reader;
 import se.uu.ub.cora.urnnbn.url.UrlHandler;
 
 public final class UrnNbnInstanceProvider {
@@ -29,8 +30,12 @@ public final class UrnNbnInstanceProvider {
 		throw new UnsupportedOperationException();
 	}
 
-	public static UrnNbn getUrnNbn() {
-		return factory.factorUrnNbn();
+	public static Reader getReader() {
+		return factory.factorReader();
+	}
+
+	public static Fetcher getFetcher() {
+		return factory.factorFetcher();
 	}
 
 	public static UrlHandler getUrlHandler() {

@@ -1,5 +1,5 @@
 /*
- * Copyright 2025 Uppsala University Library
+ * Copyright 2026 Uppsala University Library
  *
  * This file is part of Cora.
  *
@@ -16,41 +16,28 @@
  *     You should have received a copy of the GNU General Public License
  *     along with Cora.  If not, see <http://www.gnu.org/licenses/>.
  */
-package se.uu.ub.cora.urnnbn.dependency;
+package se.uu.ub.cora.urnnbn;
+
+import java.util.Collections;
+import java.util.List;
 
 import se.uu.ub.cora.testutils.mcr.MethodCallRecorder;
 import se.uu.ub.cora.testutils.mrv.MethodReturnValues;
-import se.uu.ub.cora.urnnbn.Fetcher;
-import se.uu.ub.cora.urnnbn.FetcherSpy;
-import se.uu.ub.cora.urnnbn.Reader;
-import se.uu.ub.cora.urnnbn.ReaderSpy;
-import se.uu.ub.cora.urnnbn.spy.UrlHandlerSpy;
-import se.uu.ub.cora.urnnbn.url.UrlHandler;
+import se.uu.ub.cora.urnnbn.internal.FetchOptions;
 
-public class UrnNbnInstanceFactorySpy implements UrnNbnInstanceFactory {
+public class FetcherSpy implements Fetcher {
+
 	public MethodCallRecorder MCR = new MethodCallRecorder();
 	public MethodReturnValues MRV = new MethodReturnValues();
 
-	public UrnNbnInstanceFactorySpy() {
+	public FetcherSpy() {
 		MCR.useMRV(MRV);
-		MRV.setDefaultReturnValuesSupplier("factorReader", ReaderSpy::new);
-		MRV.setDefaultReturnValuesSupplier("factorFetcher", FetcherSpy::new);
-		MRV.setDefaultReturnValuesSupplier("factorUrlHandler", UrlHandlerSpy::new);
+		MRV.setDefaultReturnValuesSupplier("getRecordsUsingFetchOptions", Collections::emptyList);
 	}
 
 	@Override
-	public Reader factorReader() {
-		return (Reader) MCR.addCallAndReturnFromMRV();
-	}
-
-	@Override
-	public Fetcher factorFetcher() {
-		return (Fetcher) MCR.addCallAndReturnFromMRV();
-	}
-
-	@Override
-	public UrlHandler factorUrlHandler() {
-		return (UrlHandlerSpy) MCR.addCallAndReturnFromMRV();
+	public List<IdAndUrnNbn> getRecordsUsingFetchOptions(FetchOptions fetchOptions) {
+		return (List<IdAndUrnNbn>) MCR.addCallAndReturnFromMRV("fetchOptions", fetchOptions);
 	}
 
 }

@@ -18,10 +18,23 @@
  */
 package se.uu.ub.cora.urnnbn;
 
-import java.util.List;
+import se.uu.ub.cora.testutils.mcr.MethodCallRecorder;
+import se.uu.ub.cora.testutils.mrv.MethodReturnValues;
+import se.uu.ub.cora.urnnbn.internal.FetchOptions;
 
-public interface UrnNbn {
+public class ReaderSpy implements Reader {
 
-	public List<IdAndUrnNbn> getUsingSeriesStartAndRows(String serie, int start, int rows);
+	public MethodCallRecorder MCR = new MethodCallRecorder();
+	public MethodReturnValues MRV = new MethodReturnValues();
 
+	public ReaderSpy() {
+		MCR.useMRV(MRV);
+		MRV.setDefaultReturnValuesSupplier("readUrnAsXml", () -> "<somexml/>");
+	}
+
+	@Override
+	public String readUrnAsXml(String urlToClient, FetchOptions fetchOptions) {
+		return (String) MCR.addCallAndReturnFromMRV("urlToClient", urlToClient, "fetchOptions",
+				fetchOptions);
+	}
 }

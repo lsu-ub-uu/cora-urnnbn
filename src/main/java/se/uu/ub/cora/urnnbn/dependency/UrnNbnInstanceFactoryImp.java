@@ -21,17 +21,26 @@ package se.uu.ub.cora.urnnbn.dependency;
 
 import se.uu.ub.cora.initialize.SettingsProvider;
 import se.uu.ub.cora.sqldatabase.SqlDatabaseFactoryImp;
-import se.uu.ub.cora.urnnbn.UrnNbn;
+import se.uu.ub.cora.urnnbn.Fetcher;
+import se.uu.ub.cora.urnnbn.Reader;
+import se.uu.ub.cora.urnnbn.ReaderImp;
+import se.uu.ub.cora.urnnbn.internal.FetcherImp;
 import se.uu.ub.cora.urnnbn.url.UrlHandler;
 import se.uu.ub.cora.urnnbn.url.UrlHandlerImp;
 
 public final class UrnNbnInstanceFactoryImp implements UrnNbnInstanceFactory {
 
 	@Override
-	public UrnNbn factorUrnNbn() {
+	public Reader factorReader() {
+		return new ReaderImp();
+	}
+
+	@Override
+	public Fetcher factorFetcher() {
 		String databaseLookupValue = SettingsProvider.getSetting("coraDatabaseLookupName");
-		return UrnNbnImp.createUrnNbnUsingSqlDatabaseFactory(
-				SqlDatabaseFactoryImp.usingLookupNameFromContext(databaseLookupValue));
+		SqlDatabaseFactoryImp sqlDatabaseFactory = SqlDatabaseFactoryImp
+				.usingLookupNameFromContext(databaseLookupValue);
+		return FetcherImp.createUrnNbnUsingSqlDatabaseFactory(sqlDatabaseFactory);
 	}
 
 	@Override

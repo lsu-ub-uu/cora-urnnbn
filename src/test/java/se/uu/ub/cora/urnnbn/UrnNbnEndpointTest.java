@@ -20,9 +20,7 @@ package se.uu.ub.cora.urnnbn;
 
 import static org.testng.Assert.assertEquals;
 
-import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 import org.testng.annotations.AfterMethod;
@@ -35,6 +33,7 @@ import se.uu.ub.cora.logger.LoggerProvider;
 import se.uu.ub.cora.logger.spies.LoggerFactorySpy;
 import se.uu.ub.cora.urnnbn.dependency.UrnNbnInstanceFactorySpy;
 import se.uu.ub.cora.urnnbn.dependency.UrnNbnInstanceProvider;
+import se.uu.ub.cora.urnnbn.internal.FetchOptions;
 import se.uu.ub.cora.urnnbn.spy.HttpServletRequestSpy;
 import se.uu.ub.cora.urnnbn.spy.UrlHandlerSpy;
 
@@ -46,7 +45,12 @@ public class UrnNbnEndpointTest {
 	private LoggerFactorySpy loggerFactorySpy;
 	private UrnNbnEndpoint endpoint;
 	private UrnNbnInstanceFactorySpy urnNbnFactory;
-	private UrnNbnSpy urnNbnSpy;
+	// private FetcherSpy urnNbnSpy;
+	private ReaderSpy readerSpy;
+
+	// TODO: handle errors
+	// - On exception respon 500 and log
+	// - Gräns på hur många rows vill vi acceptera
 
 	@BeforeMethod
 	public void beforeMethod() {
@@ -55,7 +59,9 @@ public class UrnNbnEndpointTest {
 
 		urnNbnFactory = new UrnNbnInstanceFactorySpy();
 		UrnNbnInstanceProvider.onlyForTestSetUrnNbnInstanceFactory(urnNbnFactory);
-		urnNbnSpy = new UrnNbnSpy();
+
+		readerSpy = new ReaderSpy();
+		urnNbnFactory.MRV.setDefaultReturnValuesSupplier("factorReader", () -> readerSpy);
 
 		setSettings();
 		setBaseUrl();
@@ -79,7 +85,6 @@ public class UrnNbnEndpointTest {
 		urnNbnFactory.MRV.setDefaultReturnValuesSupplier("factorUrlHandler", () -> urlHandlerSpy);
 	}
 
-	// TODO: Not sure if we need two variables
 	private void setSettings() {
 		Map<String, String> urnNbnSettings = new HashMap<>();
 		urnNbnSettings.put("urlPatternForUrnNbn", "/someclient/somerecordtype/%id%");
@@ -92,12 +97,12 @@ public class UrnNbnEndpointTest {
 	}
 
 	@Test
-	public void testAnnotationsForCreateRecordJsonJson() throws Exception {
+	public void testAnnotationsForReadAllUrnNbn() throws Exception {
 		AnnotationTestHelper annotationHelper = AnnotationTestHelper
 				.createAnnotationTestHelperForClassMethodNameAndParameters(endpoint.getClass(),
-						"readUrnNbn", new Class<?>[] { String.class, int.class, int.class });
+						"readAllUrnNbn", new Class<?>[] { String.class, int.class, int.class });
 
-		annotationHelper.assertHttpMethodAndPathAnnotation("GET", "{serie}");
+		annotationHelper.assertHttpMethodAndPathAnnotation("GET", "all/{serie}");
 		annotationHelper.assertProducesAnnotation(APPLICATION_XML);
 
 		annotationHelper.assertQueryParamAnnotationByNameAndPosition("start", 1);
@@ -108,129 +113,57 @@ public class UrnNbnEndpointTest {
 	}
 
 	@Test
+	public void testAnnotationsForReadCurrentUrnNbn() throws Exception {
+		AnnotationTestHelper annotationHelper = AnnotationTestHelper
+				.createAnnotationTestHelperForClassMethodNameAndParameters(endpoint.getClass(),
+						"readCurrentUrnNbn", new Class<?>[] { String.class, int.class, int.class });
+
+		annotationHelper.assertHttpMethodAndPathAnnotation("GET", "current/{serie}");
+		annotationHelper.assertProducesAnnotation(APPLICATION_XML);
+
+		annotationHelper.assertQueryParamAnnotationByNameAndPosition("start", 1);
+		annotationHelper.assertDefaultVauleParamAnnotationByNameAndPosition("0", 1);
+
+		annotationHelper.assertQueryParamAnnotationByNameAndPosition("rows", 2);
+		annotationHelper.assertDefaultVauleParamAnnotationByNameAndPosition("5000", 2);
+	}
+
+	@Test
+	public void testParametersArePassedOnToReadAllUrnNbn() {
+		endpoint.readAllUrnNbn("someSerie", 10, 500);
+
+		readerSpy.MCR.assertParameters("readUrnAsXml", 0,
+				"https://somedomain.org/someclient/somerecordtype/%id%");
+
+		FetchOptions fetchOptions = new FetchOptions("urnnbn_all_records", "someSerie", 10, 500);
+		readerSpy.MCR.assertParameterAsEqual("readUrnAsXml", 0, "fetchOptions", fetchOptions);
+	}
+
+	@Test
 	public void testParametersArePassedOnToUrnNbn() {
-		endpoint.readUrnNbn("someSerie", 10, 500);
+		endpoint.readCurrentUrnNbn("someSerie", 10, 500);
 
-		UrnNbnSpy returnedUrnNbnSpy = (UrnNbnSpy) urnNbnFactory.MCR.getReturnValue("factorUrnNbn",
-				0);
-		returnedUrnNbnSpy.MCR.assertParameters("getUsingSeriesStartAndRows", 0, "someSerie", 10,
-				500);
+		readerSpy.MCR.assertParameters("readUrnAsXml", 0,
+				"https://somedomain.org/someclient/somerecordtype/%id%");
+
+		FetchOptions fetchOptions = new FetchOptions("urnnbn_24h_records", "someSerie", 10, 500);
+		readerSpy.MCR.assertParameterAsEqual("readUrnAsXml", 0, "fetchOptions", fetchOptions);
 	}
 
 	@Test
-	public void testSerieNoRecords() {
-		setUpNoRecordsReturned(0);
+	public void testReadAllOkResponse() {
+		Response response = endpoint.readAllUrnNbn("someSerie", 0, 50);
 
-		Response response = endpoint.readUrnNbn("someSerie", 0, 50);
-
-		urnNbnSpy.MCR.assertParameters("getUsingSeriesStartAndRows", 0, "someSerie", 0, 50);
 		assertEquals(response.getStatus(), Response.Status.OK.getStatusCode());
-
-		assertXmlWithoutFormatting(response.getEntity().toString(), responseEmpty);
-		assertEquals(response.getEntity(), responseEmpty);
+		readerSpy.MCR.assertReturn("readUrnAsXml", 0, response.getEntity().toString());
 	}
-
-	String responseEmpty = """
-			<records xmlns="urn:nbn:se:uu:ub:epc-schema:rs-location-mapping">
-				<protocol-version>3.0</protocol-version>
-			</records>""";
 
 	@Test
-	public void testReturnedIdAndUrnNbnAreTurnedIntoXML() {
-		setUpNoRecordsReturned(1);
+	public void testReadCurrentOkResponse() {
+		Response response = endpoint.readCurrentUrnNbn("someSerie", 0, 50);
 
-		Response response = endpoint.readUrnNbn("someSerie", 0, 50);
-
-		urnNbnSpy.MCR.assertParameters("getUsingSeriesStartAndRows", 0, "someSerie", 0, 50);
 		assertEquals(response.getStatus(), Response.Status.OK.getStatusCode());
-
-		assertXmlWithoutFormatting(response.getEntity().toString(), responseOneRecord);
-		assertEquals(response.getEntity(), responseOneRecord);
-	}
-
-	String responseOneRecord = """
-			<records xmlns="urn:nbn:se:uu:ub:epc-schema:rs-location-mapping">
-				<protocol-version>3.0</protocol-version>
-				<record>
-					<header>
-						<identifier>urnnbn-1</identifier>
-						<destinations>
-							<destination status="activated">
-								<url>https://somedomain.org/someclient/somerecordtype/id-1</url>
-							</destination>
-						</destinations>
-					</header>
-				</record>
-			</records>""";
-
-	@Test
-	public void testThreeRecordsReturned() {
-		setUpNoRecordsReturned(3);
-
-		Response response = endpoint.readUrnNbn("someSerie", 0, 50);
-
-		urnNbnSpy.MCR.assertParameters("getUsingSeriesStartAndRows", 0, "someSerie", 0, 50);
-		assertEquals(response.getStatus(), Response.Status.OK.getStatusCode());
-		assertXmlWithoutFormatting(response.getEntity().toString(), responseThreeRecords);
-		assertEquals(response.getEntity(), responseThreeRecords);
-	}
-
-	String responseThreeRecords = """
-			<records xmlns="urn:nbn:se:uu:ub:epc-schema:rs-location-mapping">
-				<protocol-version>3.0</protocol-version>
-				<record>
-					<header>
-						<identifier>urnnbn-1</identifier>
-						<destinations>
-							<destination status="activated">
-								<url>https://somedomain.org/someclient/somerecordtype/id-1</url>
-							</destination>
-						</destinations>
-					</header>
-				</record>
-				<record>
-					<header>
-						<identifier>urnnbn-2</identifier>
-						<destinations>
-							<destination status="activated">
-								<url>https://somedomain.org/someclient/somerecordtype/id-2</url>
-							</destination>
-						</destinations>
-					</header>
-				</record>
-				<record>
-					<header>
-						<identifier>urnnbn-3</identifier>
-						<destinations>
-							<destination status="activated">
-								<url>https://somedomain.org/someclient/somerecordtype/id-3</url>
-							</destination>
-						</destinations>
-					</header>
-				</record>
-			</records>""";
-
-	private void setUpNoRecordsReturned(int numberofEl) {
-		urnNbnSpy.MRV.setDefaultReturnValuesSupplier("getUsingSeriesStartAndRows",
-				() -> getListOfUrnNbns(numberofEl));
-		urnNbnFactory.MRV.setDefaultReturnValuesSupplier("factorUrnNbn", () -> urnNbnSpy);
-	}
-
-	private List<IdAndUrnNbn> getListOfUrnNbns(int numberOfElements) {
-		List<IdAndUrnNbn> urnNbnList = new ArrayList<>();
-		for (int i = 1; i <= numberOfElements; i++) {
-			IdAndUrnNbn idAndUrnNbnI = new IdAndUrnNbn("id-" + i, "urnnbn-" + i);
-			urnNbnList.add(idAndUrnNbnI);
-		}
-		return urnNbnList;
-	}
-
-	private void assertXmlWithoutFormatting(String returnedXml, String expectedXml) {
-		assertEquals(removeXmlIndent(returnedXml), removeXmlIndent(expectedXml));
-	}
-
-	String removeXmlIndent(String xml) {
-		return xml.replaceAll("\n", "").replaceAll("\t", "");
+		readerSpy.MCR.assertReturn("readUrnAsXml", 0, response.getEntity().toString());
 	}
 
 }

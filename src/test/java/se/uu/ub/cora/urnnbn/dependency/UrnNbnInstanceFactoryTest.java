@@ -33,6 +33,9 @@ import se.uu.ub.cora.initialize.SettingsProvider;
 import se.uu.ub.cora.logger.LoggerProvider;
 import se.uu.ub.cora.logger.spies.LoggerFactorySpy;
 import se.uu.ub.cora.sqldatabase.SqlDatabaseFactoryImp;
+import se.uu.ub.cora.urnnbn.Reader;
+import se.uu.ub.cora.urnnbn.ReaderImp;
+import se.uu.ub.cora.urnnbn.internal.FetcherImp;
 import se.uu.ub.cora.urnnbn.url.UrlHandler;
 import se.uu.ub.cora.urnnbn.url.UrlHandlerImp;
 
@@ -63,15 +66,22 @@ public class UrnNbnInstanceFactoryTest {
 	}
 
 	@Test
-	public void testFactorUrnNbn() {
-		UrnNbnImp uh = (UrnNbnImp) factory.factorUrnNbn();
+	public void testFactorFetcher() {
+		FetcherImp fetcher = (FetcherImp) factory.factorFetcher();
 
-		assertTrue(uh.onlyForTestGetDatabaseFactory() instanceof SqlDatabaseFactoryImp);
+		assertTrue(fetcher.onlyForTestGetDatabaseFactory() instanceof SqlDatabaseFactoryImp);
+	}
+
+	@Test
+	public void testFactorReader() {
+		Reader reader = factory.factorReader();
+
+		assertTrue(reader instanceof ReaderImp);
 	}
 
 	@Test
 	public void testDependenciesOfDatabaseFactory() {
-		UrnNbnImp uh = (UrnNbnImp) factory.factorUrnNbn();
+		FetcherImp uh = (FetcherImp) factory.factorFetcher();
 
 		SqlDatabaseFactoryImp dbFactory = (SqlDatabaseFactoryImp) uh
 				.onlyForTestGetDatabaseFactory();

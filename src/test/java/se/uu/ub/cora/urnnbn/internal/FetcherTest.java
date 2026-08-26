@@ -16,41 +16,43 @@
  *     You should have received a copy of the GNU General Public License
  *     along with Cora.  If not, see <http://www.gnu.org/licenses/>.
  */
-package se.uu.ub.cora.urnnbn.dependency;
+package se.uu.ub.cora.urnnbn.internal;
 
 import static org.testng.Assert.assertEquals;
+import static org.testng.Assert.assertSame;
 
 import java.util.ArrayList;
 import java.util.List;
 
-import org.testng.AssertJUnit;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
 import se.uu.ub.cora.sqldatabase.Row;
 import se.uu.ub.cora.sqldatabase.SqlDatabaseFactory;
+import se.uu.ub.cora.urnnbn.Fetcher;
 import se.uu.ub.cora.urnnbn.IdAndUrnNbn;
+import se.uu.ub.cora.urnnbn.dependency.TableFacadeSpy;
 import se.uu.ub.cora.urnnbn.spy.sql.sql.RowSpy;
 import se.uu.ub.cora.urnnbn.spy.sql.sql.SqlDatabaseFactorySpy;
 import se.uu.ub.cora.urnnbn.spy.sql.sql.TableQuerySpy;
 
-public class UrnNbnTest {
+public class FetcherTest {
 	private static final String SERIE = "serie";
-	private static final String URN_VIEW = "urnnbn_all_records";
 	private static final String SERIE_EX = "someSerie";
-	private UrnNbnImp urnnbn;
+	private Fetcher fetcher;
 	private SqlDatabaseFactorySpy sqlDatabaseFactory;
 
 	@BeforeMethod
 	public void beforeMethod() {
 
 		sqlDatabaseFactory = new SqlDatabaseFactorySpy();
-		urnnbn = UrnNbnImp.createUrnNbnUsingSqlDatabaseFactory(sqlDatabaseFactory);
+		fetcher = FetcherImp.createUrnNbnUsingSqlDatabaseFactory(sqlDatabaseFactory);
 	}
 
 	@Test
 	public void testInit() {
-		urnnbn.getUsingSeriesStartAndRows(SERIE_EX, 0, 0);
+		FetchOptions fetchOptions = new FetchOptions("someViewName", SERIE_EX, 0, 0);
+		fetcher.getRecordsUsingFetchOptions(fetchOptions);
 
 		sqlDatabaseFactory.MCR.assertMethodWasCalled("factorTableFacade");
 		sqlDatabaseFactory.MCR.assertMethodWasCalled("factorTableQuery");
@@ -58,11 +60,13 @@ public class UrnNbnTest {
 
 	@Test
 	public void testTableQuery() {
-		urnnbn.getUsingSeriesStartAndRows(SERIE_EX, 0, 1000);
+		FetchOptions fetchOptions = new FetchOptions("someViewName", SERIE_EX, 0, 1000);
+		fetcher.getRecordsUsingFetchOptions(fetchOptions);
 
 		TableQuerySpy tableQuery = (TableQuerySpy) sqlDatabaseFactory.MCR
-				.assertCalledParametersReturn("factorTableQuery", URN_VIEW);
+				.assertCalledParametersReturn("factorTableQuery", "someViewName");
 
+		tableQuery.MCR.assertParameters("addCondition", 0, SERIE, SERIE_EX);
 		tableQuery.MCR.assertCalledParameters("addCondition", SERIE, SERIE_EX);
 		tableQuery.MCR.assertCalledParameters("setFromNo", 1L);
 		tableQuery.MCR.assertCalledParameters("setToNo", 1000L);
@@ -70,10 +74,11 @@ public class UrnNbnTest {
 
 	@Test
 	public void testTableQueryFrom() {
-		urnnbn.getUsingSeriesStartAndRows(SERIE_EX, 1000, 1000);
+		FetchOptions fetchOptions = new FetchOptions("someViewName", SERIE_EX, 1000, 1000);
+		fetcher.getRecordsUsingFetchOptions(fetchOptions);
 
 		TableQuerySpy tableQuery = (TableQuerySpy) sqlDatabaseFactory.MCR
-				.assertCalledParametersReturn("factorTableQuery", URN_VIEW);
+				.assertCalledParametersReturn("factorTableQuery", "someViewName");
 
 		tableQuery.MCR.assertCalledParameters("addCondition", SERIE, SERIE_EX);
 		tableQuery.MCR.assertCalledParameters("setFromNo", 1001L);
@@ -82,12 +87,13 @@ public class UrnNbnTest {
 
 	@Test
 	public void testCallTableFacade() {
-		urnnbn.getUsingSeriesStartAndRows(SERIE_EX, 0, 1000);
+		FetchOptions fetchOptions = new FetchOptions("someViewName", SERIE_EX, 0, 1000);
+		fetcher.getRecordsUsingFetchOptions(fetchOptions);
 
 		TableFacadeSpy tableFacade = (TableFacadeSpy) sqlDatabaseFactory.MCR
 				.assertCalledParametersReturn("factorTableFacade");
 		TableQuerySpy tableQuery = (TableQuerySpy) sqlDatabaseFactory.MCR
-				.assertCalledParametersReturn("factorTableQuery", URN_VIEW);
+				.assertCalledParametersReturn("factorTableQuery", "someViewName");
 
 		tableFacade.MCR.assertCalledParameters("readRowsForQuery", tableQuery);
 	}
@@ -101,7 +107,8 @@ public class UrnNbnTest {
 		sqlDatabaseFactory.MRV.setDefaultReturnValuesSupplier("factorTableFacade",
 				() -> tableFacade);
 
-		List<IdAndUrnNbn> urnnbnRecordlist = urnnbn.getUsingSeriesStartAndRows(SERIE_EX, 0, 2);
+		FetchOptions fetchOptions = new FetchOptions("someViewName", SERIE_EX, 0, 2);
+		List<IdAndUrnNbn> urnnbnRecordlist = fetcher.getRecordsUsingFetchOptions(fetchOptions);
 
 		assertEquals(urnnbnRecordlist.size(), 2);
 		assertEquals(urnnbnRecordlist.get(0).id(), "id-1");
@@ -112,8 +119,9 @@ public class UrnNbnTest {
 
 	@Test
 	public void testOnlyForTestGetDatabaseFactory() {
-		SqlDatabaseFactory sqlDatabaseFactory2 = urnnbn.onlyForTestGetDatabaseFactory();
-		AssertJUnit.assertSame(sqlDatabaseFactory2, sqlDatabaseFactory);
+		SqlDatabaseFactory sqlDatabaseFactory2 = ((FetcherImp) fetcher)
+				.onlyForTestGetDatabaseFactory();
+		assertSame(sqlDatabaseFactory2, sqlDatabaseFactory);
 	}
 
 	public List<Row> creatRowsForSpy(int noOfRows) {

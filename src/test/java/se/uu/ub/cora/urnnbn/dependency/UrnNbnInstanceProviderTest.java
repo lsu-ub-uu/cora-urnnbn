@@ -29,7 +29,8 @@ import org.testng.annotations.AfterMethod;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
-import se.uu.ub.cora.urnnbn.UrnNbn;
+import se.uu.ub.cora.urnnbn.Fetcher;
+import se.uu.ub.cora.urnnbn.Reader;
 import se.uu.ub.cora.urnnbn.url.UrlHandler;
 
 public class UrnNbnInstanceProviderTest {
@@ -74,11 +75,19 @@ public class UrnNbnInstanceProviderTest {
 	}
 
 	@Test(dependsOnMethods = "testDefaultInstanceFactoryIsSet")
-	public void testGetUrnNbn() {
+	public void testGetReader() {
 		setSpyFactory();
-		UrnNbn uh = UrnNbnInstanceProvider.getUrnNbn();
+		Reader reader = UrnNbnInstanceProvider.getReader();
 
-		factory.MCR.assertReturn("factorUrnNbn", 0, uh);
+		factory.MCR.assertReturn("factorReader", 0, reader);
+	}
+
+	@Test(dependsOnMethods = "testDefaultInstanceFactoryIsSet")
+	public void testGetFetcher() {
+		setSpyFactory();
+		Fetcher uh = UrnNbnInstanceProvider.getFetcher();
+
+		factory.MCR.assertReturn("factorFetcher", 0, uh);
 	}
 
 	@Test(dependsOnMethods = "testDefaultInstanceFactoryIsSet")

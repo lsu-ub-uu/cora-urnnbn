@@ -19,8 +19,6 @@
 
 package se.uu.ub.cora.urnnbn;
 
-import java.util.List;
-
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.ws.rs.DefaultValue;
 import jakarta.ws.rs.GET;
@@ -35,6 +33,7 @@ import se.uu.ub.cora.initialize.SettingsProvider;
 import se.uu.ub.cora.logger.Logger;
 import se.uu.ub.cora.logger.LoggerProvider;
 import se.uu.ub.cora.urnnbn.dependency.UrnNbnInstanceProvider;
+import se.uu.ub.cora.urnnbn.internal.FetchOptions;
 import se.uu.ub.cora.urnnbn.url.UrlHandler;
 
 @Path("")
@@ -52,17 +51,20 @@ public class UrnNbnEndpoint {
 	}
 
 	@GET
-	@Path("{serie}")
+	@Path("all/{serie}")
 	@Produces({ APPLICATION_XML })
-	public Response readUrnNbn(@PathParam("serie") String serie,
+	public Response readAllUrnNbn(@PathParam("serie") String serie,
 			@QueryParam("start") @DefaultValue("0") int start,
 			@QueryParam("rows") @DefaultValue("50000") int rows) {
-		UrnNbn urnNbn = UrnNbnInstanceProvider.getUrnNbn();
-		List<IdAndUrnNbn> urnNbnList = urnNbn.getUsingSeriesStartAndRows(serie, start, rows);
+		FetchOptions fetchOptions = new FetchOptions("urnnbn_all_records", serie, start, rows);
+		String urnNbnRecordsAsXml = readUrnAsXml(fetchOptions);
 
-		String urnNbnRecordsAsXml = parseToXml(urnNbnList);
-		return Response.status(Response.Status.OK).header(HttpHeaders.CONTENT_TYPE, APPLICATION_XML)
-				.entity(urnNbnRecordsAsXml).build();
+		return createOkResponse(urnNbnRecordsAsXml);
+	}
+
+	private String readUrnAsXml(FetchOptions fetchOptions) {
+		Reader reader = UrnNbnInstanceProvider.getReader();
+		return reader.readUrnAsXml(buildUrlToRecord(), fetchOptions);
 	}
 
 	private String buildUrlToRecord() {
@@ -70,80 +72,20 @@ public class UrnNbnEndpoint {
 		return baseUrl.concat(urlPatternForUrnNbn);
 	}
 
-	private String parseToXml(List<IdAndUrnNbn> urnList) {
-		String urlToClient = buildUrlToRecord();
-		StringBuilder urnNbnRecords = new StringBuilder();
-		for (IdAndUrnNbn idAndUrnNbn : urnList) {
-			String url = urlToClient.replace("%id%", idAndUrnNbn.id());
-			String recordAsXml = getRecordXmlPartForSet(idAndUrnNbn.urnnbn(), url);
-			urnNbnRecords.append(recordAsXml);
-		}
-		String urnNbnRecordsAsXml = """
-				<records xmlns="urn:nbn:se:uu:ub:epc-schema:rs-location-mapping">
-					<protocol-version>3.0</protocol-version>%s
-				</records>""";
-		return urnNbnRecordsAsXml.formatted(urnNbnRecords);
+	private Response createOkResponse(String urnNbnRecordsAsXml) {
+		return Response.status(Response.Status.OK).header(HttpHeaders.CONTENT_TYPE, APPLICATION_XML)
+				.entity(urnNbnRecordsAsXml).build();
 	}
 
-	String getRecordXmlPartForSet(String urnnbn, String url) {
-		String urnNbnRecordAsXml = """
-				\n\t<record>
-						<header>
-							<identifier>%s</identifier>
-							<destinations>
-								<destination status="activated">
-									<url>%s</url>
-								</destination>
-							</destinations>
-						</header>
-					</record>""";
-		return urnNbnRecordAsXml.formatted(urnnbn, url);
+	@GET
+	@Path("current/{serie}")
+	@Produces({ APPLICATION_XML })
+	public Response readCurrentUrnNbn(@PathParam("serie") String serie,
+			@QueryParam("start") @DefaultValue("0") int start,
+			@QueryParam("rows") @DefaultValue("5000") int rows) {
+		FetchOptions fetchOptions = new FetchOptions("urnnbn_24h_records", serie, start, rows);
+		String urnNbnRecordsAsXml = readUrnAsXml(fetchOptions);
+
+		return createOkResponse(urnNbnRecordsAsXml);
 	}
-
-	// Check
-	// https://git.epc.ub.uu.se/DiVA/urn-service/-/blob/master/src/main/java/diva/service/urn/NbnEndpoint.java
-	//
-	// @GET
-	// @Produces({ TEXT_XML, TEXT_PLAIN })
-	// @Path("current/{domain}")
-	// public Response getCurrentNbn(@PathParam("domain") String domain,
-	// @QueryParam("start") @DefaultValue("0") String start,
-	// @QueryParam("rows") @DefaultValue("5000") String rows) {
-	// LOGGER.info("Read current NBN of domain " + domain);
-	// SolrQuery query = createSolrQuery(domain, start, rows);
-	// setDateFilter(query);
-	//
-	// return createResponse(query);
-	// }
-	//
-	// @GET
-	// @Produces({ TEXT_XML, TEXT_PLAIN })
-	// @Path("all/{domain}")
-	// public Response getNbn(@PathParam("domain") String domain,
-	// @QueryParam("start") @DefaultValue("0") String start,
-	// @QueryParam("rows") @DefaultValue("50000") String rows) {
-	// LOGGER.info("Read NBN of domain " + domain);
-	// SolrQuery query = createSolrQuery(domain, start, rows);
-	//
-	// return createResponse(query);
-	// }
-	//
-	// private SolrQuery createSolrQuery(String domain, String start, String rows) {
-	// SolrQuery query = new SolrQuery();
-	//
-	// setStart(start, query);
-	// setNumberOfRows(rows, query);
-	// setDomainFilter(query, domain);
-	//
-	// query.setSortField("timestamp", SolrQuery.ORDER.desc);
-	// query.setFields("PID,nbn,domain");
-	// return query;
-	// }
-	//
-	// private void setDateFilter(final SolrQuery query) {
-	// final String timeRange = "[NOW/MINUTE-1DAY TO NOW/MINUTE]";
-	// query.addFilterQuery("dateUpdated:" + timeRange + " OR datePublished:" + timeRange
-	// + " OR timestamp:" + timeRange);
-	// }
-
 }

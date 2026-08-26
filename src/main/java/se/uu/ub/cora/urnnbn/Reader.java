@@ -16,28 +16,13 @@
  *     You should have received a copy of the GNU General Public License
  *     along with Cora.  If not, see <http://www.gnu.org/licenses/>.
  */
+
 package se.uu.ub.cora.urnnbn;
 
-import java.util.Collections;
-import java.util.List;
+import se.uu.ub.cora.urnnbn.internal.FetchOptions;
 
-import se.uu.ub.cora.testutils.mcr.MethodCallRecorder;
-import se.uu.ub.cora.testutils.mrv.MethodReturnValues;
+public interface Reader {
 
-public class UrnNbnSpy implements UrnNbn {
-
-	public MethodCallRecorder MCR = new MethodCallRecorder();
-	public MethodReturnValues MRV = new MethodReturnValues();
-
-	public UrnNbnSpy() {
-		MCR.useMRV(MRV);
-		MRV.setDefaultReturnValuesSupplier("getUsingSeriesStartAndRows", Collections::emptyList);
-	}
-
-	@Override
-	public List<IdAndUrnNbn> getUsingSeriesStartAndRows(String serie, int start, int rows) {
-		return (List<IdAndUrnNbn>) MCR.addCallAndReturnFromMRV("serie", serie, "start", start,
-				"rows", rows);
-	}
+	String readUrnAsXml(String urlToClient, FetchOptions fetchOptions);
 
 }
