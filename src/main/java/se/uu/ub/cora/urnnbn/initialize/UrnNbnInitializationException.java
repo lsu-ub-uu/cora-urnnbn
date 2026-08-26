@@ -16,26 +16,14 @@
  *     You should have received a copy of the GNU General Public License
  *     along with Cora.  If not, see <http://www.gnu.org/licenses/>.
  */
+package se.uu.ub.cora.urnnbn.initialize;
 
-package se.uu.ub.cora.urnnbn.dependency;
+public class UrnNbnInitializationException extends RuntimeException {
 
-import se.uu.ub.cora.initialize.SettingsProvider;
-import se.uu.ub.cora.sqldatabase.SqlDatabaseFactoryImp;
-import se.uu.ub.cora.urnnbn.UrnNbn;
-import se.uu.ub.cora.urnnbn.url.UrlHandler;
-import se.uu.ub.cora.urnnbn.url.UrlHandlerImp;
+	private static final long serialVersionUID = 1106993019564065759L;
 
-public final class UrnNbnInstanceFactoryImp implements UrnNbnInstanceFactory {
-
-	@Override
-	public UrnNbn factorUrnNbn() {
-		String databaseLookupValue = SettingsProvider.getSetting("coraDatabaseLookupName");
-		return UrnNbnImp.createUrnNbnUsingSqlDatabaseFactory(
-				SqlDatabaseFactoryImp.usingLookupNameFromContext(databaseLookupValue));
+	public UrnNbnInitializationException(String message) {
+		super(message);
 	}
 
-	@Override
-	public UrlHandler factorUrlHandler() {
-		return new UrlHandlerImp();
-	}
 }

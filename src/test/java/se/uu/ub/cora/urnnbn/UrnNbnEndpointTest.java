@@ -25,6 +25,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.testng.annotations.AfterMethod;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
@@ -61,6 +62,12 @@ public class UrnNbnEndpointTest {
 
 		requestSpy = new HttpServletRequestSpy();
 		endpoint = new UrnNbnEndpoint(requestSpy);
+	}
+
+	@AfterMethod
+	private void afterMethod() {
+		SettingsProvider.setSettings(null);
+		LoggerProvider.setLoggerFactory(null);
 	}
 
 	// TODO: Not sure if BaseUrl returns / on the final or not

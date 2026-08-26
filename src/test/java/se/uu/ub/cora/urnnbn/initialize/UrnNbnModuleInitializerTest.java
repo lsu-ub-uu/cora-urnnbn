@@ -16,38 +16,34 @@
  *     You should have received a copy of the GNU General Public License
  *     along with Cora.  If not, see <http://www.gnu.org/licenses/>.
  */
-
-package se.uu.ub.cora.urnnbn.dependency;
+package se.uu.ub.cora.urnnbn.initialize;
 
 import static org.testng.Assert.assertEquals;
-import static org.testng.Assert.assertTrue;
-
-import java.util.HashMap;
-import java.util.Map;
 
 import org.testng.annotations.AfterMethod;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
+import jakarta.servlet.ServletContext;
+import jakarta.servlet.ServletContextEvent;
 import se.uu.ub.cora.initialize.SettingsProvider;
 import se.uu.ub.cora.logger.LoggerProvider;
 import se.uu.ub.cora.logger.spies.LoggerFactorySpy;
-import se.uu.ub.cora.sqldatabase.SqlDatabaseFactoryImp;
-import se.uu.ub.cora.urnnbn.url.UrlHandler;
-import se.uu.ub.cora.urnnbn.url.UrlHandlerImp;
 
-public class UrnNbnInstanceFactoryTest {
+public class UrnNbnModuleInitializerTest {
 	private LoggerFactorySpy loggerFactorySpy;
-	private UrnNbnInstanceFactory factory;
+	private ServletContext source;
+	private ServletContextEvent context;
+	private UrnNbnModuleInitializer urnNbnInitializer;
 
 	@BeforeMethod
-	public void setUp() {
+	public void beforeMethod() {
 		loggerFactorySpy = new LoggerFactorySpy();
 		LoggerProvider.setLoggerFactory(loggerFactorySpy);
-
+		source = new ServletContextSpy();
+		context = new ServletContextEvent(source);
 		setNeededInitParameters();
-
-		factory = new UrnNbnInstanceFactoryImp();
+		urnNbnInitializer = new UrnNbnModuleInitializer();
 	}
 
 	@AfterMethod
@@ -57,33 +53,15 @@ public class UrnNbnInstanceFactoryTest {
 	}
 
 	private void setNeededInitParameters() {
-		Map<String, String> urnNbnSettings = new HashMap<>();
-		urnNbnSettings.put("coraDatabaseLookupName", "someLookupName");
-		SettingsProvider.setSettings(urnNbnSettings);
+		source.setInitParameter("initParam1", "initValue1");
+		source.setInitParameter("initParam2", "initValue2");
 	}
 
 	@Test
-	public void testFactorUrnNbn() {
-		UrnNbnImp uh = (UrnNbnImp) factory.factorUrnNbn();
+	public void testInitParametersArePassedOnToStarter() {
+		urnNbnInitializer.contextInitialized(context);
 
-		assertTrue(uh.onlyForTestGetDatabaseFactory() instanceof SqlDatabaseFactoryImp);
+		assertEquals(SettingsProvider.getSetting("initParam1"), "initValue1");
+		assertEquals(SettingsProvider.getSetting("initParam2"), "initValue2");
 	}
-
-	@Test
-	public void testDependenciesOfDatabaseFactory() {
-		UrnNbnImp uh = (UrnNbnImp) factory.factorUrnNbn();
-
-		SqlDatabaseFactoryImp dbFactory = (SqlDatabaseFactoryImp) uh
-				.onlyForTestGetDatabaseFactory();
-
-		assertEquals(dbFactory.onlyForTestGetLookupName(), "someLookupName");
-	}
-
-	@Test
-	public void testFactorUrlHandler() {
-		UrlHandler uh = factory.factorUrlHandler();
-
-		assertTrue(uh instanceof UrlHandlerImp);
-	}
-
 }
