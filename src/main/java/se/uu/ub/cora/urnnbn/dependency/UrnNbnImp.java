@@ -31,7 +31,7 @@ import se.uu.ub.cora.urnnbn.UrnNbn;
 public class UrnNbnImp implements UrnNbn {
 
 	private SqlDatabaseFactory sqlDatabaseFactory;
-	private static final String URN_VIEW = "urnnbn_records";
+	private static final String URN_VIEW = "urnnbn_all_records";
 
 	public static UrnNbnImp createUrnNbnUsingSqlDatabaseFactory(
 			SqlDatabaseFactory sqlDatabaseFactory) {

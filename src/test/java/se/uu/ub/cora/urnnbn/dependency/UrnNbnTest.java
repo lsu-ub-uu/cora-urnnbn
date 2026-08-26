@@ -36,7 +36,7 @@ import se.uu.ub.cora.urnnbn.spy.sql.sql.TableQuerySpy;
 
 public class UrnNbnTest {
 	private static final String SERIE = "serie";
-	private static final String URN_VIEW = "urnnbn_records";
+	private static final String URN_VIEW = "urnnbn_all_records";
 	private static final String SERIE_EX = "someSerie";
 	private UrnNbnImp urnnbn;
 	private SqlDatabaseFactorySpy sqlDatabaseFactory;
