@@ -74,17 +74,22 @@ public class UrnNbnEndpoint {
 	}
 
 	private Response readUrnsFromDB(String serie, int start, int rows, String viewName) {
+		if (start < 0) {
+			return badRequestResponse("Start must be a positive number.");
+		}
+		if (rows < 0) {
+			return badRequestResponse("Rows must be a positive number.");
+		}
 		if (rows > MAX_ROWS) {
-			return badRequestResponse();
+			return badRequestResponse("Too many rows requested, max is 50000.");
 		}
 		FetchOptions fetchOptions = new FetchOptions(viewName, serie, start, rows);
 		String urnNbnRecordsAsXml = readUrnAsXml(fetchOptions);
 		return createOkResponse(urnNbnRecordsAsXml);
 	}
 
-	private Response badRequestResponse() {
-		return Response.status(Response.Status.BAD_REQUEST)
-				.entity("Too many rows requested, max is 50000.").build();
+	private Response badRequestResponse(String errorMessage) {
+		return Response.status(Response.Status.BAD_REQUEST).entity(errorMessage).build();
 	}
 
 	private String readUrnAsXml(FetchOptions fetchOptions) {

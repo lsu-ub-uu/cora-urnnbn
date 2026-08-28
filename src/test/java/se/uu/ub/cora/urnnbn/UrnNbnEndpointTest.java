@@ -50,8 +50,8 @@ public class UrnNbnEndpointTest {
 	private ReaderSpy readerSpy;
 
 	// TODO: handle errors
-	// - On exception respon 500 and log
-	// - Gräns på hur många rows vill vi acceptera
+	// - On exception respon 500 and log OK
+	// - Gräns på hur många rows vill vi acceptera OK
 
 	@BeforeMethod
 	public void beforeMethod() {
@@ -77,7 +77,6 @@ public class UrnNbnEndpointTest {
 		LoggerProvider.setLoggerFactory(null);
 	}
 
-	// TODO: Not sure if BaseUrl returns / on the final or not
 	private void setBaseUrl() {
 		UrlHandlerSpy urlHandlerSpy = new UrlHandlerSpy();
 		urlHandlerSpy.MRV.setDefaultReturnValuesSupplier("getBaseUrl",
@@ -130,27 +129,36 @@ public class UrnNbnEndpointTest {
 	}
 
 	@Test
-	public void testLimitRowsAllUrn() {
-		Response ok = endpoint.readAllUrnNbn("someSerie", 10, 50000);
-		assertEquals(ok.getStatus(), 200);
+	public void testInputStartMustBePossitive() {
+		Response nok = endpoint.readAllUrnNbn("someSerie", -1, 50);
+		assertBadRequestReaderNotCalledWithMessage(nok, "Start must be a positive number.");
 
-		Response ok2 = endpoint.readCurrentUrnNbn("someSerie", 10, 50000);
-		assertEquals(ok2.getStatus(), 200);
+		Response nok2 = endpoint.readCurrentUrnNbn("someSerie", -1, 50);
+		assertBadRequestReaderNotCalledWithMessage(nok2, "Start must be a positive number.");
+	}
+
+	private void assertBadRequestReaderNotCalledWithMessage(Response nok, String errorMessage) {
+		urnNbnFactory.MCR.assertMethodNotCalled("factorReader");
+		assertEquals(nok.getStatus(), 400);
+		assertEquals(nok.getEntity(), errorMessage);
+	}
+
+	@Test
+	public void testInputRowsMustBePossitive() {
+		Response nok = endpoint.readAllUrnNbn("someSerie", 1, -1);
+		assertBadRequestReaderNotCalledWithMessage(nok, "Rows must be a positive number.");
+
+		Response nok2 = endpoint.readCurrentUrnNbn("someSerie", 1, -1);
+		assertBadRequestReaderNotCalledWithMessage(nok2, "Rows must be a positive number.");
 	}
 
 	@Test
 	public void testLimitRowsCurrentUrn() {
 		Response nok = endpoint.readAllUrnNbn("someSerie", 10, 50001);
-		assertMaxRows(nok);
+		assertBadRequestReaderNotCalledWithMessage(nok, "Too many rows requested, max is 50000.");
 
 		Response nok2 = endpoint.readCurrentUrnNbn("someSerie", 10, 50001);
-		assertMaxRows(nok2);
-	}
-
-	private void assertMaxRows(Response nok) {
-		urnNbnFactory.MCR.assertMethodNotCalled("factorReader");
-		assertEquals(nok.getStatus(), 400);
-		assertEquals(nok.getEntity(), "Too many rows requested, max is 50000.");
+		assertBadRequestReaderNotCalledWithMessage(nok2, "Too many rows requested, max is 50000.");
 	}
 
 	@Test
@@ -181,6 +189,15 @@ public class UrnNbnEndpointTest {
 		loggerSpy.MCR.assertParameters("logErrorUsingMessageAndException", 0,
 				"Error on %s for serie: someSerie, start: 10 and rows: 50".formatted(method),
 				thrownException);
+	}
+
+	@Test
+	public void testLimitRowsAllUrn() {
+		Response ok = endpoint.readAllUrnNbn("someSerie", 10, 50000);
+		assertEquals(ok.getStatus(), 200);
+
+		Response ok2 = endpoint.readCurrentUrnNbn("someSerie", 10, 50000);
+		assertEquals(ok2.getStatus(), 200);
 	}
 
 	@Test
