@@ -31,6 +31,7 @@ import jakarta.ws.rs.core.Response;
 import se.uu.ub.cora.initialize.SettingsProvider;
 import se.uu.ub.cora.logger.LoggerProvider;
 import se.uu.ub.cora.logger.spies.LoggerFactorySpy;
+import se.uu.ub.cora.logger.spies.LoggerSpy;
 import se.uu.ub.cora.urnnbn.dependency.UrnNbnInstanceFactorySpy;
 import se.uu.ub.cora.urnnbn.dependency.UrnNbnInstanceProvider;
 import se.uu.ub.cora.urnnbn.internal.FetchOptions;
@@ -126,6 +127,60 @@ public class UrnNbnEndpointTest {
 
 		annotationHelper.assertQueryParamAnnotationByNameAndPosition("rows", 2);
 		annotationHelper.assertDefaultVauleParamAnnotationByNameAndPosition("5000", 2);
+	}
+
+	@Test
+	public void testLimitRowsAllUrn() {
+		Response ok = endpoint.readAllUrnNbn("someSerie", 10, 50000);
+		assertEquals(ok.getStatus(), 200);
+
+		Response ok2 = endpoint.readCurrentUrnNbn("someSerie", 10, 50000);
+		assertEquals(ok2.getStatus(), 200);
+	}
+
+	@Test
+	public void testLimitRowsCurrentUrn() {
+		Response nok = endpoint.readAllUrnNbn("someSerie", 10, 50001);
+		assertMaxRows(nok);
+
+		Response nok2 = endpoint.readCurrentUrnNbn("someSerie", 10, 50001);
+		assertMaxRows(nok2);
+	}
+
+	private void assertMaxRows(Response nok) {
+		urnNbnFactory.MCR.assertMethodNotCalled("factorReader");
+		assertEquals(nok.getStatus(), 400);
+		assertEquals(nok.getEntity(), "Too many rows requested, max is 50000.");
+	}
+
+	@Test
+	public void testHandleAnyExceptionForAll() {
+		RuntimeException thrownException = new RuntimeException();
+		urnNbnFactory.MRV.setAlwaysThrowException("factorReader", thrownException);
+
+		Response nok = endpoint.readAllUrnNbn("someSerie", 10, 50);
+		assertHandleAnyException(thrownException, nok, "readAllUrnNbn");
+	}
+
+	@Test
+	public void testHandleAnyExceptionForCurrent() {
+		RuntimeException thrownException = new RuntimeException();
+		urnNbnFactory.MRV.setAlwaysThrowException("factorReader", thrownException);
+
+		Response nok = endpoint.readCurrentUrnNbn("someSerie", 10, 50);
+		assertHandleAnyException(thrownException, nok, "readCurrentUrnNbn");
+	}
+
+	private void assertHandleAnyException(RuntimeException thrownException, Response nok,
+			String method) {
+		assertEquals(nok.getStatus(), 500);
+		assertEquals(nok.getEntity(), "The server was unable to complete your request.");
+
+		LoggerSpy loggerSpy = (LoggerSpy) loggerFactorySpy.MCR
+				.assertCalledParametersReturn("factorForClass", UrnNbnEndpoint.class);
+		loggerSpy.MCR.assertParameters("logErrorUsingMessageAndException", 0,
+				"Error on %s for serie: someSerie, start: 10 and rows: 50".formatted(method),
+				thrownException);
 	}
 
 	@Test

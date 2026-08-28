@@ -38,6 +38,7 @@ import se.uu.ub.cora.urnnbn.url.UrlHandler;
 
 @Path("")
 public class UrnNbnEndpoint {
+	private static final int MAX_ROWS = 50000;
 	private static final String APPLICATION_XML = "application/xml";
 	HttpServletRequest request;
 	private Logger log = LoggerProvider.getLoggerForClass(UrnNbnEndpoint.class);
@@ -56,10 +57,34 @@ public class UrnNbnEndpoint {
 	public Response readAllUrnNbn(@PathParam("serie") String serie,
 			@QueryParam("start") @DefaultValue("0") int start,
 			@QueryParam("rows") @DefaultValue("50000") int rows) {
-		FetchOptions fetchOptions = new FetchOptions("urnnbn_all_records", serie, start, rows);
-		String urnNbnRecordsAsXml = readUrnAsXml(fetchOptions);
+		String viewName = "urnnbn_all_records";
+		return tryToReadUrnsFromDB("readAllUrnNbn", serie, start, rows, viewName);
+	}
 
+	private Response tryToReadUrnsFromDB(String method, String serie, int start, int rows,
+			String viewName) {
+		try {
+			return readUrnsFromDB(serie, start, rows, viewName);
+		} catch (Exception e) {
+			String message = "Error on %s for serie: someSerie, start: %s and rows: %s"
+					.formatted(method, start, rows);
+			log.logErrorUsingMessageAndException(message, e);
+			return errorResponse();
+		}
+	}
+
+	private Response readUrnsFromDB(String serie, int start, int rows, String viewName) {
+		if (rows > MAX_ROWS) {
+			return badRequestResponse();
+		}
+		FetchOptions fetchOptions = new FetchOptions(viewName, serie, start, rows);
+		String urnNbnRecordsAsXml = readUrnAsXml(fetchOptions);
 		return createOkResponse(urnNbnRecordsAsXml);
+	}
+
+	private Response badRequestResponse() {
+		return Response.status(Response.Status.BAD_REQUEST)
+				.entity("Too many rows requested, max is 50000.").build();
 	}
 
 	private String readUrnAsXml(FetchOptions fetchOptions) {
@@ -77,15 +102,18 @@ public class UrnNbnEndpoint {
 				.entity(urnNbnRecordsAsXml).build();
 	}
 
+	private Response errorResponse() {
+		return Response.status(Response.Status.INTERNAL_SERVER_ERROR)
+				.entity("The server was unable to complete your request.").build();
+	}
+
 	@GET
 	@Path("current/{serie}")
 	@Produces({ APPLICATION_XML })
 	public Response readCurrentUrnNbn(@PathParam("serie") String serie,
 			@QueryParam("start") @DefaultValue("0") int start,
 			@QueryParam("rows") @DefaultValue("5000") int rows) {
-		FetchOptions fetchOptions = new FetchOptions("urnnbn_24h_records", serie, start, rows);
-		String urnNbnRecordsAsXml = readUrnAsXml(fetchOptions);
-
-		return createOkResponse(urnNbnRecordsAsXml);
+		String viewName = "urnnbn_24h_records";
+		return tryToReadUrnsFromDB("readCurrentUrnNbn", serie, start, rows, viewName);
 	}
 }
