@@ -43,10 +43,11 @@ public class FetcherImp implements Fetcher {
 
 	@Override
 	public List<IdAndUrnNbn> getRecordsUsingFetchOptions(FetchOptions fetchOptions) {
-		TableFacade tableFacade = sqlDatabaseFactory.factorTableFacade();
-		TableQuery tableQuery = createTableQuerieForSerie(fetchOptions);
-		List<Row> rowsForQuery = tableFacade.readRowsForQuery(tableQuery);
-		return parseRowsToIdAndUrnNbnList(rowsForQuery);
+		try (TableFacade tableFacade = sqlDatabaseFactory.factorTableFacade()) {
+			TableQuery tableQuery = createTableQuerieForSerie(fetchOptions);
+			List<Row> rowsForQuery = tableFacade.readRowsForQuery(tableQuery);
+			return parseRowsToIdAndUrnNbnList(rowsForQuery);
+		}
 	}
 
 	private TableQuery createTableQuerieForSerie(FetchOptions fetchOptions) {

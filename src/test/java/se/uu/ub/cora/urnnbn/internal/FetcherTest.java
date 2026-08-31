@@ -86,6 +86,17 @@ public class FetcherTest {
 	}
 
 	@Test
+	public void testCallTableFacadeIsClosed() {
+		FetchOptions fetchOptions = new FetchOptions("someViewName", SERIE_EX, 0, 1000);
+		fetcher.getRecordsUsingFetchOptions(fetchOptions);
+
+		TableFacadeSpy tableFacade = (TableFacadeSpy) sqlDatabaseFactory.MCR
+				.assertCalledParametersReturn("factorTableFacade");
+
+		tableFacade.MCR.assertMethodWasCalled("close");
+	}
+
+	@Test
 	public void testCallTableFacade() {
 		FetchOptions fetchOptions = new FetchOptions("someViewName", SERIE_EX, 0, 1000);
 		fetcher.getRecordsUsingFetchOptions(fetchOptions);
