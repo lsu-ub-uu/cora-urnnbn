@@ -42,7 +42,7 @@
 		<jersey.version>4.0.2</jersey.version>
 		<initialize.version>1.8.0</initialize.version>
 		<initialize-spies.version>1.7.0</initialize-spies.version>
-		<sqldatabase.version>7.8.0</sqldatabase.version>
+		<sqldatabase.version>7.9.0</sqldatabase.version>
 		<testutils.version>1.14.0</testutils.version>
 		
 	</properties>
